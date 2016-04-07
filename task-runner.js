@@ -3,6 +3,7 @@
 var assert = require('chai').assert;
 var AsciiTable = require('ascii-table');
 var metrics = require('statman');
+var E = require('linq');
 
 // 
 // Responsible for finding and running tasks.
@@ -12,7 +13,7 @@ var TaskRunner = function (log) {
 
 	var self = this;
 
-	assert.isObject(log);
+    assert.isFunction(log.info);
 
 	//
 	// All tasks.
@@ -20,35 +21,19 @@ var TaskRunner = function (log) {
     var tasks = [];
 
     //
-    // Root tasks in the task hierarchy.
-    //
-    var rootTasks = [];
-
-    //
     // Map of tasks for look up by name.
     //
     var taskMap = {};
 
     //
-    // Add a task and wire it up to the parent task.
+    // Add a task.
     //
-	self.addTask = function (task, parentTask) {
+	self.addTask = function (task) {
 
 		assert.isObject(task);
 
-		if (parentTask) {
-			assert.isObject(parentTask);
-		}
-
         tasks.push(task);
-        taskMap[task.fullName()] = task;                
-
-        if (parentTask) {
-            parentTask.addChild(task);
-        }
-        else {
-            rootTasks.push(task);
-        }
+        taskMap[task.name()] = task;                
 	};
 
 	//
@@ -69,39 +54,39 @@ var TaskRunner = function (log) {
 	//
 	// Run a named task with a particular config.
 	//
-	self.runTask = function (requestedTaskName, config) {
+	self.runTask = function (taskName, config, configOverride) {
 
-		assert.isString(requestedTaskName);
+		assert.isString(taskName);
 		assert.isObject(config);
 
-        var requestedTask = taskMap[requestedTaskName];
-        if (!requestedTask) {
-            throw new Error("Failed to find task: " + requestedTaskName);
+        if (configOverride) {
+            assert.isObject(configOverride);
         }
-        
+
+        var requestedTask = taskMap[taskName];
+        if (!requestedTask) {
+            throw new Error("Failed to find task: " + taskName);
+        }
+
         var stopWatch = new metrics.Stopwatch();
         
         if (config.get('timed')) {
             stopWatch.start();
         }
+	
+		configOverride = configOverride || {};
 
-	    //
-	    // Tasks that have been validated.
-	    //
-	    var tasksValidated = {};
-
-	    //
-	    // Tasks that have been invoked.
-	    //
-	    var taskInvoked = {};
-
-        return requestedTask.validate({}, config, tasksValidated)
-            .then(function () {
-                return requestedTask.invoke({}, config, taskInvoked);
+        return self.resolveDependencies(taskName, config)
+            .then(function () {        
+                var tasksValidated = {}; // Tasks that have been validated.
+                return requestedTask.validate(configOverride, config, tasksValidated);
             })
             .then(function () {
-            
-                var ouputMessage = 'Build completed';
+                var taskInvoked = {}; // Tasks that have been invoked.
+                return requestedTask.invoke(configOverride, config, taskInvoked);
+            })
+            .then(function () {            
+                var ouputMessage = taskName + ' completed';
 
                 if (config.get('timed')) {
                     stopWatch.stop();
@@ -120,7 +105,7 @@ var TaskRunner = function (log) {
 
         var treeOutput = "#tasks\n";
 
-        rootTasks.forEach(function (task) {
+        tasks.forEach(function (task) {
             treeOutput += task.genTree(2);
         });
 
@@ -129,18 +114,35 @@ var TaskRunner = function (log) {
     };
 
     //
-    // Resolve dependencies between tasks.
+    // Resolve dependencies for all tasks.
     //
-    self.resolveDependencies = function (config) {
+    self.resolveAllDependencies = function (config) {
 
-    	assert.isObject(config);
-	    
-	    tasks.forEach(function (task) {
-        	task.resolveDependencies(config);
-    	});
+        assert.isObject(config);
+
+        return E.from(tasks)
+            .aggregate(Promise.resolve(), function (prevPromise, task) {
+                return prevPromise.then(function () {
+                    return task.resolveDependencies(config);
+                });
+            });
     };
+    
+    //
+    // Resolve dependencies for a particular task.
+    //
+    self.resolveDependencies = function (taskName, config) {
 
+        assert.isString(taskName);
+    	assert.isObject(config);
 
+        var task = taskMap[taskName];
+        if (!task) {
+            throw new Error("Failed to find task: " + taskName);
+        }        
+
+        return task.resolveDependencies(config);
+    };
 };
 
 module.exports = TaskRunner;

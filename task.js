@@ -9,43 +9,27 @@ var util = require('util');
 var hash = require('./es-hash');
 
 //
-// Strips an extension from a filename.
-//
-var stripExt = function (fileName) {
-    assert.isString(fileName);
-
-    if (S(fileName).endsWith('.js')) {
-        return fileName.slice(0, -3); // Hacky: Specific for .js files.
-    }
-    else {
-        return fileName;
-    }
-};
-
-//
 // Class that represents a task loaded from a file.
 //
-function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validate, taskRunner) {
+function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunner) {
 
-    assert.isString(fileName);
+    assert.isString(taskName);
     assert.isString(relativeFilePath);
     assert.isString(fullFilePath);
-    if (parentTask) {
-        assert.isObject(parentTask);
-    }
-    assert.isObject(log);
+    assert.isFunction(log.info);
+    assert.isFunction(log.error);
+    assert.isFunction(log.warn);
+    assert.isFunction(log.verbose);
+    assert.isFunction(log.task);
     assert.isObject(validate);
     assert.isObject(taskRunner);    
     assert.isFunction(taskRunner.getTask);
 
     var self = this;
-    self.fileName = fileName;
+    self.taskName = taskName;
     self.relativeFilePath = relativeFilePath;
     self.fullFilePath = fullFilePath;
 
-    self.taskName = stripExt(fileName);
-    self.children = [];
-    self.childrenMap = {};
     var resolvedDependencies = [];
 
     if (S(fullFilePath).endsWith(".js")) {
@@ -68,39 +52,18 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
     };
 
     //
-    // Full name of the task including parent tasks.
-    //
-    self.fullName = function () {
-        if (parentTask) {
-            return parentTask.fullName() + "/" + self.name();
-        }
-        else {
-            return self.name();
-        }
-    };
-
-    //
-    // Add a child task.
-    //
-    self.addChild = function (childTask) {
-        assert.isObject(childTask);
-
-        self.children.push(childTask);
-        self.childrenMap[childTask.name()] = childTask;
-    };
-
-    //
     // Gets the tasks that this task depends on.
+    // Returns a promise, just in case the task needs some time to figure out it's dependencies.
     //
     var establishDependencies = function (config) {
         assert.isObject(config);
 
         if (!self.module) {
-            return [];
+            return Promise.resolve([]);
         }
 
         if (!self.module.dependsOn) {
-            return [];
+            return Promise.resolve([]);
         }
         
         var dependencies;
@@ -112,33 +75,49 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
             dependencies = self.module.dependsOn;
         }
 
+        //
         // Normalize dependencies.
-        dependencies = E.from(dependencies)
-            .select(function (dependency) {                
-                
-                if (util.isObject(dependency)) {
-                    if (!dependency.configure) {
-                        // Auto-supply a configure function.
-                        dependency.configure = function () {
-                            return [];
+        //
+        var normalizeDependencies = function (dependencies) {
+            assert.isArray(dependencies);
+
+            // Normalize dependencies.
+            return E.from(dependencies)
+                .select(function (dependency) {                
+                    
+                    if (util.isObject(dependency)) {
+                        if (!dependency.configure) {
+                            // Auto-supply a configure function.
+                            dependency.configure = function () {
+                                return [];
+                            };
+                        }
+                        return dependency;
+                    }
+                    else {
+                        assert.isString(dependency);
+
+                        return { 
+                            task: dependency,
+                            configure: function () {
+                                return {}; // No effect.
+                            },
                         };
                     }
-                    return dependency;
-                }
-                else {
-                    assert.isString(dependency);
+                })
+                .toArray();            
+        };
 
-                    return { 
-                        task: dependency,
-                        configure: function () {
-                            return {}; // No effect.
-                        },
-                    };
-                }
-            })
-            .toArray();
-
-        return dependencies;
+        if (util.isFunction(dependencies.then)) {
+            // Assume dependencies is a promise.
+            return dependencies
+                .then(function (deps) {
+                    return normalizeDependencies(deps);
+                });
+        }
+        else {
+            return Promise.resolve(normalizeDependencies(dependencies));
+        }
     };
 
     //
@@ -151,13 +130,17 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
         assert.isFunction(taskRunner.getTask);
 
         try {
-            resolvedDependencies = establishDependencies(config);
-            resolvedDependencies.forEach(function (dependency) {
-                    dependency.resolvedTask = taskRunner.getTask(dependency.task);
+            return establishDependencies(config)
+                .then(function (deps) {
+                    resolvedDependencies = deps;
+
+                    resolvedDependencies.forEach(function (dependency) {
+                            dependency.resolvedTask = taskRunner.getTask(dependency.task);
+                        });
                 });
         }
         catch (err) {
-            log.error('Exception while resolving dependencies for task: ' + self.fullName() + "\r\n" + err.stack);
+            log.error('Exception while resolving dependencies for task: ' + self.name() + "\r\n" + err.stack);
             throw err;
         }
     };
@@ -171,7 +154,7 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
         assert.isObject(config);
         assert.isObject(tasksValidated);
 
-        var taskName = self.fullName();
+        var taskName = self.name();
         var taskKey = taskName + '_' + hash(configOverride);
         if (tasksValidated[taskKey]) { //todo: include the hash code here for the task and it's configuration.
             // Skip tasks that have already been satisfied.
@@ -266,7 +249,7 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
         assert.isObject(config);
         assert.isObject(tasksInvoked);
 
-        var taskName = self.fullName();
+        var taskName = self.name();
         var taskKey = taskName + '_' + hash(configOverride);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
@@ -378,7 +361,7 @@ function Task(fileName, relativeFilePath, fullFilePath, parentTask, log, validat
 
     self.genTree = function (indentLevel) {
         var output = makeIndent(indentLevel);
-        output += self.fullName();
+        output += self.name();
         output += "\n";
 
         resolvedDependencies.forEach(function (dependency) {
