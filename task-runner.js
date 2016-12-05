@@ -2,7 +2,6 @@
 
 var assert = require('chai').assert;
 var AsciiTable = require('ascii-table');
-var metrics = require('statman');
 var E = require('linq');
 
 // 
@@ -39,13 +38,13 @@ var TaskRunner = function (log) {
 	//
 	// Get a task by name, throws exception if task doesn't exist.
 	//
-	self.getTask = function (requestedTaskName) {
+	self.getTask = function (taskName) {
 
-		assert.isString(requestedTaskName);
+		assert.isString(taskName);
 
-        var task = taskMap[requestedTaskName];
+        var task = taskMap[taskName];
         if (!task) {
-            throw new Error("Task not found: " + requestedTaskName);
+            throw new Error("Task not found: " + taskName);
         }
 
         return task;
@@ -58,23 +57,12 @@ var TaskRunner = function (log) {
 
 		assert.isString(taskName);
 		assert.isObject(config);
-
-        if (configOverride) {
-            assert.isObject(configOverride);
-        }
+        assert.isObject(configOverride);
 
         var requestedTask = taskMap[taskName];
         if (!requestedTask) {
             throw new Error("Failed to find task: " + taskName);
         }
-
-        var stopWatch = new metrics.Stopwatch();
-        
-        if (config.get('timed')) {
-            stopWatch.start();
-        }
-	
-		configOverride = configOverride || {};
 
         return self.resolveDependencies(taskName, config)
             .then(function () {        
@@ -85,16 +73,7 @@ var TaskRunner = function (log) {
                 var taskInvoked = {}; // Tasks that have been invoked.
                 return requestedTask.invoke(configOverride, config, taskInvoked);
             })
-            .then(function () {            
-                var ouputMessage = taskName + ' completed';
-
-                if (config.get('timed')) {
-                    stopWatch.stop();
-                    ouputMessage += ": " + (stopWatch.read() * 0.001).toFixed(2) + " seconds";
-                }
-
-                log.info(ouputMessage);
-            });
+            ;
 	};
 
 

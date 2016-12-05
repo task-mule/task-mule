@@ -3,6 +3,7 @@
 var cron = require('cron');
 var assert = require('chai').assert;
 var conf = require('confucious');
+var Stopwatch = require('statman-stopwatch');
 
 var TaskScheduler = function (taskRunner, config, log) {
 	
@@ -32,41 +33,7 @@ var TaskScheduler = function (taskRunner, config, log) {
 			    cronTime: jobSpec.cron,
 			    onTick: function() { 
 
-			    	log.info("Running job " + jobSpec.name + " at " + (new Date()));
-
-			    	if (callbacks.jobStarted) {
-			    		callbacks.jobStarted(jobSpec);
-			    	}
-
-					taskRunner.runTask(jobSpec.task, conf)
-						.then(function () {
-							if (callbacks.jobSucceeded) {
-								callbacks.jobSucceeded(jobSpec);
-							}
-							else {
-								log.info('Scheduled job completed: ' + jobSpec.name);
-							}
-						})
-			            .catch(function (err) {		                
-			            	if (callbacks.jobFailed) {
-			            		callbacks.jobFailed(jobSpec, err);
-			            	} 
-			            	else {
-			                	log.error('Scheduled job failed: ' + jobSpec.name);
-			                
-				                if (err.message) {
-				                    log.warn(err.message);
-				                }
-
-				                if (err.stack) {
-				                    log.warn(err.stack);
-				                }
-				                else {
-				                    log.warn('no stack');
-				                }					            		
-			                }
-			            })
-				        .done();			    	
+					taskRunner.runTask(jobSpec.task, conf);	
 			    }, 
 			    start: true,
 			});			

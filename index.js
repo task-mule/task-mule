@@ -9,36 +9,40 @@ var chalk = require('chalk');
 var validate = require('./validate');
 var S = require('string');
 var AsciiTable = require('ascii-table');
+var assert = require('chai').assert;
+var loadTasks = require('./task-loader')
+var JobRunner = require('./job-runner');
+var consoleLog = require('./log')(argv.verbose, argv.nocolors);
 
 var workingDirectory = process.cwd();
-var buildFilePath = path.join(workingDirectory, "build.js");
+var buildFilePath = path.join(workingDirectory, "mule.js");
 var tasksDirectory = path.join(workingDirectory, 'tasks');
 
 //
 // task-mule init
 //
-var commandInit = function (config, log) {
+var commandInit = function (config) {
 
 	if (fs.existsSync(buildFilePath)) {
-		log.error("Can't overwrite existing 'build.js'.");
+		consoleLog.error("Can't overwrite existing 'mule.js'.");
 		process.exit(1);
 	}
 
-	// Auto create build.js.
-	var defaultBuildJs = path.join(__dirname, 'build.js');
+	// Auto create mule.js.
+	var defaultBuildJs = path.join(__dirname, 'template', 'mule.js');
 	fs.copySync(defaultBuildJs, buildFilePath);
-	log.info("Created new 'build.js' at " + buildFilePath);
+	consoleLog.info("Created new 'mule.js' at " + buildFilePath);
 	process.exit(0);
 };
 
 //
 // task-mule create-task <task-name>
 //
-var commandCreateTask = function (config, log) {
+var commandCreateTask = function (config) {
 
 	var newTaskName = argv._[1];
 	if (!newTaskName) {
-		log.error("Task name not specified.");
+		consoleLog.error("Task name not specified.");
 		process.exit(1);
 	}
 
@@ -54,21 +58,26 @@ var commandCreateTask = function (config, log) {
 
 	var newTaskFilePath = path.join(tasksDirectory, newTaskName);
 	if (fs.existsSync(newTaskFilePath)) {
-		log.error("Can't create task, file already exists: " + newTaskFilePath);
+		consoleLog.error("Can't create task, file already exists: " + newTaskFilePath);
 		process.exit(1);
 	}
 
-	var defaultTaskFile = path.join(__dirname, 'default-task.js');
+	var defaultTaskFile = path.join(__dirname, 'template', 'task.js');
 	fs.copySync(defaultTaskFile, newTaskFilePath);
-	log.info("Created new task file at " + newTaskFilePath);
+	consoleLog.info("Created new task file at " + newTaskFilePath);
 };
 
 //
 // Init config prior to running or listing tasks.
 //
-var initConfig = function (config, log) {
+var initConfig = function (config, buildConfig, log) {
 
-	var buildConfig = require(buildFilePath)(conf, log, validate);
+	assert.isObject(config);
+	assert.isObject(buildConfig);
+	assert.isFunction(log.error);
+	assert.isFunction(log.info);
+	assert.isFunction(log.warn);
+	assert.isFunction(log.verbose);
 
 	var defaultConfigFilePath = path.join(workingDirectory, 'config.json');
 	if (fs.existsSync(defaultConfigFilePath)) {
@@ -79,59 +88,68 @@ var initConfig = function (config, log) {
 	}
 
 	conf.pushEnv();
-	conf.pushArgv();
 
 	if (config.defaultConfig) {
 		conf.push(config.defaultConfig)
 	}
 
+	if (buildConfig.initConfig) {
+		buildConfig.initConfig();
+	}
+
+	conf.pushArgv();
+
 	buildConfig.init();
+
+	return buildConfig;
 };
 
 //
 // task-mule schedule
 //
-var commandSchedule = function (config, log) {
+var commandSchedule = function (config, buildConfig, log) {
+
+	assert.isObject(config);
+	assert.isObject(buildConfig);
+	assert.isFunction(log.error);
+	assert.isFunction(log.info);
+	assert.isFunction(log.warn);
 
 	if (!fs.existsSync('schedule.json')) {
 		log.error('Expected schedule.json to specify the schedule of tasks.');
 		process.exit(1);
 	}
 
-	initConfig(config, log);
+	initConfig(config, buildConfig, log);
 
-	var taskRunner = require('./task-loader.js')({}, log, validate, conf);
+	var taskRunner = loadTasks({}, log, validate, conf);
+	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	var schedule = JSON.parse(fs.readFileSync('schedule.json', 'utf8'));
 
 	var TaskScheduler = require('./task-scheduler');
-	var taskScheduler = new TaskScheduler(taskRunner, config, log);
-	taskScheduler.start(schedule, config.schedulerCallbacks);
+	var taskScheduler = new TaskScheduler(jobRunner, config, log);
+	taskScheduler.start(schedule, buildConfig);
 };
 
 //
 // task-mule <task-name>
 //
-var commandRunTask = function (config, log, requestedTaskName) {
+var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
 
-	if (!fs.existsSync(buildFilePath)) {
-		log.error("'build.js' not found, please run task-mule in a directory that has this file.");
-		log.info("Run 'task-mule init' to create a default 'build.js'.")
-		process.exit(1);
-	}
+	assert.isObject(config);
+	assert.isObject(buildConfig);
+	assert.isFunction(log.error);
+	assert.isFunction(log.info);
+	assert.isFunction(log.warn);
 
-	if (!fs.existsSync(tasksDirectory)) {
-		log.error("'tasks' directory doesn't exist.");
-		log.info("Run 'task-mule create-task <task-name> to create your first task.");
-		process.exit(1);
-	}
+	initConfig(config, buildConfig, log);
 
-	initConfig(config, log);
-
-	var taskRunner = require('./task-loader.js')({}, log, validate, conf);
+	var taskRunner = loadTasks({}, log, validate, conf);
+	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {
-	    return taskRunner.runTask(requestedTaskName, conf)
+	    return jobRunner.runTask(requestedTaskName, conf, {})
             .catch(function (err) {
                 
                 log.error('Build failed.');
@@ -166,56 +184,86 @@ var commandRunTask = function (config, log, requestedTaskName) {
 			});
 	} 
 	else {
-	    log.info("Usage: task-mule <task-name> [options]\n");
-
-	    var optionsTable = new AsciiTable('Options');
-	    optionsTable
-	      .setHeading('Options', 'Description');
-
-	    buildConfig.options.forEach(function (option) {
-	        optionsTable.addRow(option[0], option[1]);
-	    });
-
-	    console.log(chalk.bold.green(optionsTable.toString()));
-
-	    var examplesTable = new AsciiTable('Examples');
-	    examplesTable.setHeading('What?', 'Command Line');
-
-	     buildConfig.examples.forEach(function (example) {
-	     	examplesTable.addRow(example[0], example[1]);
-	     });
-
-	    console.log(chalk.bold.green(examplesTable.toString()));
-
-	    process.exit(1);
+		throw new Error("Unexpected usage of task-mule.");
 	}
+};
+
+//
+// Display usage and help.
+//
+var displayHelp = function (buildConfig, log) {
+
+	log.info("Usage: task-mule <task-name> [options]\n");
+
+	var optionsTable = new AsciiTable('Options');
+	optionsTable
+		.setHeading('Options', 'Description');
+
+	buildConfig.options.forEach(function (option) {
+		optionsTable.addRow(option[0], option[1]);
+	});
+
+	console.log(chalk.bold.green(optionsTable.toString()));
+
+	var examplesTable = new AsciiTable('Examples');
+	examplesTable.setHeading('What?', 'Command Line');
+
+		buildConfig.examples.forEach(function (example) {
+		examplesTable.addRow(example[0], example[1]);
+		});
+
+	console.log(chalk.bold.green(examplesTable.toString()));
 };
 
 module.exports = function (config) {
 
 	config = config || {};
 
-	var log = config.log || require('./log')(argv.verbose, argv.nocolors);
-
-	global.runCmd = require('./run-cmd')(log);
-	global.path = require('path');
-	global.fs = require('fs-extra');
-	global.quote = require('quote');
-
 	var requestedTaskName = config.requestedTaskName || argv._[0];
 	if (requestedTaskName === 'init') {
-		commandInit(config, log);
+		commandInit(config);
 		process.exit(0);
 	}
 	else if (requestedTaskName === 'create-task') {
-		commandCreateTask(config, log);
+		commandCreateTask(config);
 		process.exit(0);
 	}
-	else if (requestedTaskName === 'schedule') {
-		commandSchedule(config, log);
-		return;
-	}
+	else {
+		if (!fs.existsSync(buildFilePath)) {
+			consoleLog.error("'mule.js' not found, please run task-mule in a directory that has this file.");
+			consoleLog.info("Run 'task-mule init' to create a default 'mule.js'.")
+			process.exit(1);
+		}
 
-	commandRunTask(config, log, requestedTaskName);
+		if (!fs.existsSync(tasksDirectory)) {
+			consoleLog.error("'tasks' directory doesn't exist.");
+			consoleLog.info("Run 'task-mule create-task <task-name> to create your first task.");
+			process.exit(1);
+		}
+
+		var buildConfig = require(buildFilePath)(conf, validate);
+		var log = consoleLog;
+		if (buildConfig.initLog) {
+			log = buildConfig.initLog();
+		}
+
+		global.runCmd = require('./run-cmd')(log);
+
+		if (!requestedTaskName && !argv.tasks) {
+			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));
+			console.log(chalk.bold.yellow("To list tasks: task-mule --tasks"));
+			console.log();
+
+			displayHelp(buildConfig, log);
+			process.exit(1);
+		}
+
+		if (requestedTaskName === 'schedule') {
+			commandSchedule(config, buildConfig, log);
+			return;
+		}
+
+		return commandRunTask(config, buildConfig, log, requestedTaskName);
+	}
 };
 
