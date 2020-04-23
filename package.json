@@ -1,14 +1,14 @@
 {
   "name": "task-mule",
-  "version": "1.6.0",
-  "description": "Yet another task runner",
+  "version": "2.0.0",
+  "description": "for build process with complex dependency chains.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Real-Serious-Games/task-mule.git"
+    "url": "git+https://github.com/task-mule/task-mule.git"
   },
   "bin": {
     "task-mule": "./bin/task-mule"
@@ -20,12 +20,12 @@
     "grunt",
     "gulp"
   ],
-  "author": "ashley.davis@realseriousgames.com",
+  "author": "ashley@codecapers.com.au",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Real-Serious-Games/task-mule/issues"
+    "url": "https://github.com/task-mule/task-mule/issues"
   },
-  "homepage": "https://github.com/Real-Serious-Games/task-mule#readme",
+  "homepage": "https://github.com/task-mule/task-mule#readme",
   "dependencies": {
     "ascii-table": "0.0.8",
     "ascii-tree": "^0.1.1",
