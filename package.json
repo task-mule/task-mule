@@ -4,7 +4,10 @@
   "description": "for build process with complex dependency chains.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "t": "npm run test",
+    "test": "jest",
+    "t:w": "npm run test:watch",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -47,6 +50,7 @@
     "yargs": "^3.10.0"
   },
   "devDependencies": {
-    "caller-id": "^0.1.0"
+    "caller-id": "^0.1.0",
+    "jest": "^25.4.0"
   }
 }
