@@ -1,7 +1,7 @@
 
 'use strict';
 
-module.exports = function (config, validate) {
+module.exports = (config, validate) => {
 
 	// ... load npm modules here ...
 
@@ -24,7 +24,7 @@ module.exports = function (config, validate) {
 
 		/* Uncomment this to provide your own custom logger.
 
-		initLog: function () {
+		initLog: () => {
 
 			var myLogger = {
 				verbose: function (msg) {
@@ -49,35 +49,35 @@ module.exports = function (config, validate) {
 		},
 		*/
 
-		initConfig: function () {
+		initConfig: () => {
 			// ... setup default config here ...
 		},
 
-		init: function () {
+		init: () => {
 			// ... custom initialisation code here ... 
 		},
 
-		unhandledException: function (err) {
+		unhandledException: (err) => {
 			// ... callback for unhandled exceptions thrown by your tasks ...
 		},
 
-		taskStarted: function (taskInfo) {
+		taskStarted: (taskInfo) => {
 			// ... callback for when a task has started (not called for dependencies) ...
 		},
 
-		taskSuccess: function (taskInfo) {
+		taskSuccess: (taskInfo) => {
 			// ... callback for when a task has succeeed (not called for dependencies) ...
 		},
 
-		taskFailure: function (taskInfo) {
+		taskFailure: (taskInfo) => {
 			// ... callback for when a task has failed (not called for dependencies) ...
 		},
 
-		taskDone: function (taskInfo) {
+		taskDone: (taskInfo) => {
 			// ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
 		},
 
-		done: function () {
+		done: () => {
 			// ... callback for when all tasks have been completed, either failed or succeeded ...
 		}
 	};

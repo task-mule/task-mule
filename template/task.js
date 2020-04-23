@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports = function (log, validate) {
+module.exports = (log, validate) => {
     
     return {
         
@@ -15,14 +15,14 @@ module.exports = function (log, validate) {
         // Validate configuration for the task.
         // Throw an exception to fail the task.
         //
-        validate: function (config) {
+        validate: (config) => {
             // ... validate input to the task ...
         },
 
         //
         // Configure prior to invoke dependencies for this task.
         //
-        configure: function (config) {
+        configure: (config) => {
             // ... modify configuration prior to invoking dependencies ...
         },
         
@@ -31,7 +31,7 @@ module.exports = function (log, validate) {
         // Return a promise for async tasks.
         // Throw an exception or return a rejected promise to fail the task.
         //
-        invoke: function (config) {
+        invoke: (config) => {
             // ... do the action of the task ...
 
             // ... return a promise for asynchronous tasks ...
