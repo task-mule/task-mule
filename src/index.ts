@@ -1,13 +1,13 @@
 'use strict';
 
-var argv = require('yargs').argv;
+import { argv } from 'yargs';
 var conf = require('confucious');
-var path = require('path');
-var fs = require('fs-extra');
-var chalk = require('chalk');
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import chalk from 'chalk';
 var S = require('string');
 var AsciiTable = require('ascii-table');
-var assert = require('chai').assert;
+import { assert } from 'chai';
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
 const { log } = require('./log');
@@ -15,7 +15,7 @@ const { log } = require('./log');
 //
 // task-mule init
 //
-var commandInit = function (config) {
+function commandInit(config: any): void {
 
 	if (fs.existsSync(config.buildFilePath)) {
 		log.error("Can't overwrite existing 'mule.js'.");
@@ -32,7 +32,7 @@ var commandInit = function (config) {
 //
 // task-mule create-task <task-name>
 //
-var commandCreateTask = function (config) {
+function commandCreateTask(config: any): void {
 
 	var newTaskName = argv._[1];
 	if (!newTaskName) {
@@ -64,7 +64,7 @@ var commandCreateTask = function (config) {
 //
 // Init config prior to running or listing tasks.
 //
-var initConfig = function (config, buildConfig) {
+function initConfig(config: any, buildConfig: any): any {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
@@ -97,7 +97,7 @@ var initConfig = function (config, buildConfig) {
 //
 // task-mule <task-name>
 //
-async function commandRunTask(config, buildConfig, requestedTaskName) {
+async function commandRunTask(config: any, buildConfig: any, requestedTaskName?: string): Promise<void> {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
@@ -111,11 +111,10 @@ async function commandRunTask(config, buildConfig, requestedTaskName) {
 	    await jobRunner.runTask(requestedTaskName, conf, {});
 	}
 	else if (argv.tasks) {
-	    return taskRunner.resolveAllDependencies(conf)
-	    	.then(function () {
-			    taskRunner.listTasks();
-			    process.exit(1);
-			});
+	    await taskRunner.resolveAllDependencies(conf)
+
+		taskRunner.listTasks();
+		process.exit(1);
 	} 
 	else {
 		throw new Error("Unexpected usage of task-mule.");
@@ -125,7 +124,7 @@ async function commandRunTask(config, buildConfig, requestedTaskName) {
 //
 // Display usage and help.
 //
-function displayHelp(buildConfig) {
+function displayHelp(buildConfig: any): void {
 
 	log.info("Usage: task-mule <task-name> [options]\n");
 
@@ -133,7 +132,7 @@ function displayHelp(buildConfig) {
 	optionsTable
 		.setHeading('Options', 'Description');
 
-	buildConfig.options.forEach(function (option) {
+	buildConfig.options.forEach((option: any) => {
 		optionsTable.addRow(option[0], option[1]);
 	});
 
@@ -142,15 +141,15 @@ function displayHelp(buildConfig) {
 	var examplesTable = new AsciiTable('Examples');
 	examplesTable.setHeading('What?', 'Command Line');
 
-		buildConfig.examples.forEach(function (example) {
+	buildConfig.examples.forEach((example: any) => {
 		examplesTable.addRow(example[0], example[1]);
-		});
+	});
 
 	console.log(chalk.bold.green(examplesTable.toString()));
 };
 
 async function main() {
-	const config = {
+	const config: any = {
 		workingDirectory: process.cwd(),
 	};
 
