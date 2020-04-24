@@ -3,7 +3,7 @@ var fs = require("fs");
 var path = require('path');
 var S = require('string');
 var Task = require('./task');
-var TaskRunner = require('./task-runner.js');
+var { TaskRunner } = require('./task-runner.js');
 var assert = require('chai').assert;
 
 //
