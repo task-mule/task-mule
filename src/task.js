@@ -16,10 +16,6 @@ function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunne
     assert.isString(taskName);
     assert.isString(relativeFilePath);
     assert.isString(fullFilePath);
-    assert.isFunction(log.info);
-    assert.isFunction(log.error);
-    assert.isFunction(log.warn);
-    assert.isFunction(log.verbose);
     assert.isObject(validate);
     assert.isObject(taskRunner);    
     assert.isFunction(taskRunner.getTask);
@@ -196,10 +192,7 @@ function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunne
             .then(function () {
                 tasksValidated[taskKey] = true; // Make that the task has been invoked.
 
-                //log.info("Validating " + taskName);
-
                 if (!self.module) {
-                    //log.warn("Task not implemented: " + taskName);
                     return;
                 }
                 else if (!self.module.validate) {
@@ -210,12 +203,8 @@ function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunne
                     var resultingPromise = self.module.validate.apply(this, [config]);
                     if (resultingPromise) {
                         return resultingPromise.then(function (result) {
-                            //log.info("Validated " + taskName);
                             return result;
                         })
-                    }
-                    else {
-                        //log.info("Validated " + taskName);
                     }
                 }
                 catch (e) {

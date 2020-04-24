@@ -1,8 +1,8 @@
 'use strict';
 
 var assert = require('chai').assert;
-var AsciiTable = require('ascii-table');
 var E = require('linq');
+var asciitree = require('ascii-tree');
 
 // 
 // Responsible for finding and running tasks.
@@ -11,8 +11,6 @@ var E = require('linq');
 var TaskRunner = function (log) {
 
 	var self = this;
-
-    assert.isFunction(log.info);
 
 	//
 	// All tasks.
@@ -88,8 +86,7 @@ var TaskRunner = function (log) {
             treeOutput += task.genTree(2);
         });
 
-        var asciitree = require('ascii-tree');
-        console.log(asciitree.generate(treeOutput));
+        log.info(asciitree.generate(treeOutput));
     };
 
     //

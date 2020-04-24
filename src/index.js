@@ -11,7 +11,7 @@ var AsciiTable = require('ascii-table');
 var assert = require('chai').assert;
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
-var log = require('./log')(argv.verbose, argv.nocolors);
+const { log } = require('./log');
 
 //
 // task-mule init
@@ -65,14 +65,10 @@ var commandCreateTask = function (config) {
 //
 // Init config prior to running or listing tasks.
 //
-var initConfig = function (config, buildConfig, log) {
+var initConfig = function (config, buildConfig) {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
-	assert.isFunction(log.error);
-	assert.isFunction(log.info);
-	assert.isFunction(log.warn);
-	assert.isFunction(log.verbose);
 
 	var defaultConfigFilePath = path.join(config.workingDirectory, 'config.json');
 	if (fs.existsSync(defaultConfigFilePath)) {
@@ -102,15 +98,12 @@ var initConfig = function (config, buildConfig, log) {
 //
 // task-mule <task-name>
 //
-async function commandRunTask(config, buildConfig, log, requestedTaskName) {
+async function commandRunTask(config, buildConfig, requestedTaskName) {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
-	assert.isFunction(log.error);
-	assert.isFunction(log.info);
-	assert.isFunction(log.warn);
 
-	initConfig(config, buildConfig, log);
+	initConfig(config, buildConfig);
 
 	var taskRunner = loadTasks(config, log, validate);
 	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
@@ -133,7 +126,7 @@ async function commandRunTask(config, buildConfig, log, requestedTaskName) {
 //
 // Display usage and help.
 //
-var displayHelp = function (buildConfig, log) {
+function displayHelp(buildConfig) {
 
 	log.info("Usage: task-mule <task-name> [options]\n");
 
@@ -194,12 +187,12 @@ async function main() {
 			console.log(chalk.bold.yellow("To list tasks: task-mule --tasks"));
 			console.log();
 
-			displayHelp(buildConfig, log);
+			displayHelp(buildConfig);
 			process.exit(1);
 		}
 
 		try {
-			await commandRunTask(config, buildConfig, log, requestedTaskName);
+			await commandRunTask(config, buildConfig, requestedTaskName);
 		}
 		finally {
 			if (buildConfig.done) {

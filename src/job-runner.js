@@ -2,7 +2,6 @@
 
 var assert = require('chai').assert;
 var Stopwatch = require('statman-stopwatch');
-var E = require('linq');
 
 // 
 // A higher level manager for tasks. Runs tasks and coordinates error handling and logging.
@@ -13,7 +12,6 @@ var JobRunner = function (taskRunner, log, callbacks) {
 	var self = this;
 
     assert.isObject(taskRunner);
-    assert.isFunction(log.info);
     assert.isObject(callbacks);
     if (callbacks.unhandledExceptionCallback) {
         assert.isFunction(callbacks.unhandledException);
