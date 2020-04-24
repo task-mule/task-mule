@@ -3,13 +3,12 @@ var fs = require("fs");
 var path = require('path');
 var S = require('string');
 var Task = require('./task');
-var { TaskRunner } = require('./task-runner.js');
 var assert = require('chai').assert;
 
 //
 // Automatic loading of Grunt tasks from a collection of files.
 //
-module.exports = function (autoLoadConfig, log) {
+module.exports = function (autoLoadConfig, log, taskRunner) {
 
     assert.isObject(autoLoadConfig);
 
@@ -18,8 +17,6 @@ module.exports = function (autoLoadConfig, log) {
     //
     var tasksDir = autoLoadConfig.tasksDir || path.join(process.cwd(), "tasks");
 
-    var taskRunner = new TaskRunner(log);
-    
     //
     // Strips an extension from a filename.
     //
@@ -66,6 +63,4 @@ module.exports = function (autoLoadConfig, log) {
     };    
     
     walkDirs(tasksDir);
-
-    return taskRunner;
 };

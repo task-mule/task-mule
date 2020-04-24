@@ -12,9 +12,12 @@ import { ILog, Log } from './log';
 import { IValidate, Validate } from './validate';
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
+import { TaskRunner } from './task-runner.js';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
+export const taskRunner = new TaskRunner(log);
+
 export { runCmd } from "./run-cmd";
 
 //
@@ -109,7 +112,7 @@ async function commandRunTask(config: any, buildConfig: any, requestedTaskName?:
 
 	initConfig(config, buildConfig);
 
-	var taskRunner = loadTasks(config, log);
+	loadTasks(config, log, taskRunner);
 	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {
