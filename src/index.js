@@ -180,8 +180,6 @@ async function main() {
 
 		var buildConfig = require(config.buildFilePath)(conf, validate);
 
-		global.runCmd = require('./run-cmd')(log);
-
 		if (!requestedTaskName && !argv.tasks) {
 			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));
 			console.log(chalk.bold.yellow("To list tasks: task-mule --tasks"));

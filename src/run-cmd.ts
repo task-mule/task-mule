@@ -1,0 +1,73 @@
+//
+// This code orginally from here, but modified to fit my needs.
+//
+// https://www.npmjs.com/package/promised-exec
+//
+
+'use strict';
+
+import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
+import { assert } from 'chai';
+import { log } from "./log";
+
+export interface IRunCmdResult {
+    code: number;
+    stdout: string;
+    stderr: string;
+}
+
+export function runCmd(command: string, args?: string[], options?: SpawnOptionsWithoutStdio): Promise<IRunCmdResult> {
+
+    assert.isString(command, "Expected 'command' parameter to 'runCmd' function to be a string.");
+    if (args) {
+        assert.isArray(args, "Expected optional 'args' parameter to 'runCmd' function to be an array of strings.");
+    }
+    
+    if (options) {
+        assert.isObject(options, "Expected optional 'options' parameter to 'runCmd' function to be an object with configuration for 'spawn'.");
+    }
+
+    log.verbose("Running cmd: " + command + " " + (args || []).join(' '));
+
+    return new Promise((resolve, reject) => {
+
+        var stdout = '';
+        var stderr = ''
+
+        var cp = spawn(command, args || [], options);
+
+        cp.stdout.on('data', data => {
+            var str = data.toString();
+            log.verbose(command + ':out: ' + str);
+            stdout += str;
+        });
+
+        cp.stderr.on('data', data => {
+            var str = data.toString();
+            log.verbose(command + ':err: ' + str);
+            stderr += str;
+        });
+
+        cp.on('error', err => {
+            log.verbose(`Command failed: ${err.message}.`);
+
+            reject(err);
+        });
+
+        cp.on('exit', code => {
+            log.verbose(`Command exited with code ${code}.`);
+
+            if (code === 0) {
+                resolve({
+                    code: code,
+                    stdout: stdout,
+                    stderr: stderr,                        
+                });
+                return;
+            }
+
+            reject(new Error(`Command failed with code ${code}.`));
+        });
+    });    
+}
+

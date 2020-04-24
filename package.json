@@ -61,6 +61,7 @@
     "yargs": "^15.3.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.11",
     "@types/chalk": "^2.2.0",
     "@types/jest": "^25.2.1",
     "@types/node": "^13.13.2",
