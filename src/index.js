@@ -112,7 +112,7 @@ var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
 
 	initConfig(config, buildConfig, log);
 
-	var taskRunner = loadTasks(config, log, validate, conf);
+	var taskRunner = loadTasks(config, log, validate);
 	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {

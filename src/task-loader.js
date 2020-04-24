@@ -9,11 +9,10 @@ var assert = require('chai').assert;
 //
 // Automatic loading of Grunt tasks from a collection of files.
 //
-module.exports = function (autoLoadConfig, log, validate, config) {
+module.exports = function (autoLoadConfig, log, validate) {
 
     assert.isObject(autoLoadConfig);
     assert.isObject(validate);
-    assert.isObject(config);
 
     // 
     // Load in all tasks from files.
