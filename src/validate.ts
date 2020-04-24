@@ -1,7 +1,6 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
+import * as fs from 'fs';
 
 export interface IValidate {
     config(config: any, name: string): any;
@@ -43,4 +42,4 @@ export class Validate implements IValidate {
     }
 }
 
-export const validate = new Validate();
+

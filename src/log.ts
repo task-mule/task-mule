@@ -67,4 +67,3 @@ export class Log implements ILog {
 	}
 }
 
-export const log = new Log();

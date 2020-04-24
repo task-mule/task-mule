@@ -8,9 +8,14 @@ import chalk from 'chalk';
 var S = require('string');
 var AsciiTable = require('ascii-table');
 import { assert } from 'chai';
+import { ILog, Log } from './log';
+import { IValidate, Validate } from './validate';
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
-const { log } = require('./log');
+
+export const log: ILog = new Log();
+export const validate: IValidate = new Validate();
+export { runCmd } from "./run-cmd";
 
 //
 // task-mule init

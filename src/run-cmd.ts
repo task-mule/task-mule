@@ -8,7 +8,7 @@
 
 import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { assert } from 'chai';
-import { log } from "./log";
+import { log } from "./index";
 
 export interface IRunCmdResult {
     code: number;

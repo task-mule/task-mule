@@ -1,8 +1,6 @@
 "use strict";
 
-const { runCmd } = require("task-mule/build/run-cmd"); //TODO: Should import this from the index file.
-const { validate } = require("task-mule/build/validate"); //todo:
-
+const { runCmd, validate } = require("task-mule");
 
 module.exports = (log) => {
     
