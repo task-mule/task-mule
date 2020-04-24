@@ -1,6 +1,4 @@
-var assert = require('chai').assert;
-var expect = require('chai').expect;
-var mock = require('./mock-require');
+var Task = require('../task');
 
 describe('Task', function () {
 
@@ -11,7 +9,13 @@ describe('Task', function () {
 	var testObject = null;
 
 	var init = function (mockTaskModule) {
-		mockLog = {};
+		mockLog = {
+			info: () => {},
+			warn: () => {},
+			error: () => {},
+			
+			verbose: () => {},
+		};
 		mockValidate = {};
 		mockTaskRunner = {
 			getTask: function () {
@@ -20,11 +24,15 @@ describe('Task', function () {
 
 		var fullFilePath = 'blah/foo/test.js';
 
-		mock(fullFilePath, mockTaskModule);
+		jest.doMock(
+			fullFilePath, 
+			() => {
+				return mockTaskModule;
+			}, 
+			{ virtual: true }
+		);
 
-		var Task = require('../task');
-
-		testObject = new Task('test.js', 'foo/test.js', fullFilePath, null, mockLog, mockValidate, mockTaskRunner);
+		testObject = new Task('test', 'foo/test.js', fullFilePath, mockLog, mockValidate, mockTaskRunner);
 	};
 
 	afterEach(function () {
@@ -37,30 +45,19 @@ describe('Task', function () {
 
 	it('bad task module throws', function () {
 
-		expect(
-				function () {
-					init(null);
-				}
-			).to.throw(Error);
+		expect(() => init(null)).toThrow();
 	});
 
 	it('non-function task throws', function () {
 
-		expect(
-				function () {
-					init({});
-				}
-			).to.throw(Error);
+		expect(() => init({})).toThrow();
 	});
-
 
 	it('can get name', function () {
 
-		debugger;
+		init(() => {});
 
-		init(function () {});
-
-		expect(testObject.name()).to.be.equal("test");
+		expect(testObject.name()).toEqual("test");
 	});
 
 });
