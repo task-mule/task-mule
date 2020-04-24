@@ -8,7 +8,8 @@
 
 import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { assert } from 'chai';
-import { log } from "./index";
+import { ILog } from './log';
+import { log as globalLog } from './index';
 
 export interface IRunCmdResult {
     code: number;
@@ -16,7 +17,9 @@ export interface IRunCmdResult {
     stderr: string;
 }
 
-export function runCmd(command: string, args?: string[], options?: SpawnOptionsWithoutStdio): Promise<IRunCmdResult> {
+export function runCmd(command: string, args?: string[], options?: SpawnOptionsWithoutStdio, injectedLog?: ILog): Promise<IRunCmdResult> {
+
+    const log = injectedLog || globalLog;
 
     assert.isString(command, "Expected 'command' parameter to 'runCmd' function to be a string.");
     if (args) {
