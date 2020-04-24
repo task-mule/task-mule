@@ -588,33 +588,6 @@ Creating a new *mule.js* will give you the following template, which has stubs f
 				['What it is', 'example command line'],
 			],
 	
-			/* Uncomment this to provide your own custom logger.
-	
-			initLog: function () {
-	
-				var myLogger = {
-					verbose: function (msg) {
-						console.log(msg);					
-					},
-	
-					info: function (msg) {
-						console.log(msg);					
-					},
-	
-					warn: function (msg) {
-						console.log(msg);
-		
-					},
-	
-					error: function (msg) {
-						console.error(msg);
-					},
-				}
-	
-				return myLogger;
-			},
-			*/
-	
 			initConfig: function () {
 				// ... setup default config here ...
 			},
@@ -974,9 +947,9 @@ This is the hierarchy of configuration options:
 - Global options.
 - Environment variables.
 - *Config.json*
-- Configuration setup in *mule.json* `initConfig`.
+- Configuration setup in *mule.js* `initConfig`.
 - Command line options.
-- Configuration setup in *mule.json* `init`.
+- Configuration setup in *mule.js* `init`.
 - Configuration set while running tasks.
 - Configuration overrides for specific tasks.
 

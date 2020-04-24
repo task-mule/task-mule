@@ -223,23 +223,19 @@ async function main() {
 		}
 
 		var buildConfig = require(config.buildFilePath)(conf, validate);
-		var log = consoleLog;
-		if (buildConfig.initLog) {
-			log = buildConfig.initLog();
-		}
 
-		global.runCmd = require('./run-cmd')(log);
+		global.runCmd = require('./run-cmd')(consoleLog);
 
 		if (!requestedTaskName && !argv.tasks) {
 			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));
 			console.log(chalk.bold.yellow("To list tasks: task-mule --tasks"));
 			console.log();
 
-			displayHelp(buildConfig, log);
+			displayHelp(buildConfig, consoleLog);
 			process.exit(1);
 		}
 
-		await commandRunTask(config, buildConfig, log, requestedTaskName);
+		await commandRunTask(config, buildConfig, consoleLog, requestedTaskName);
 	}
 };
 

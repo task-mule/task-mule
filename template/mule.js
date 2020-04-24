@@ -22,33 +22,6 @@ module.exports = (config, validate) => {
 			['What it is', 'example command line'],
 		],
 
-		/* Uncomment this to provide your own custom logger.
-
-		initLog: () => {
-
-			var myLogger = {
-				verbose: function (msg) {
-					console.log(msg);					
-				},
-
-				info: function (msg) {
-					console.log(msg);					
-				},
-
-				warn: function (msg) {
-					console.log(msg);
-	
-				},
-
-				error: function (msg) {
-					console.error(msg);
-				},
-			}
-
-			return myLogger;
-		},
-		*/
-
 		initConfig: () => {
 			// ... setup default config here ...
 		},
