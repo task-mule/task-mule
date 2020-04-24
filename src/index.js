@@ -11,7 +11,7 @@ var AsciiTable = require('ascii-table');
 var assert = require('chai').assert;
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
-var consoleLog = require('./log')(argv.verbose, argv.nocolors);
+var log = require('./log')(argv.verbose, argv.nocolors);
 
 //
 // task-mule init
@@ -19,14 +19,14 @@ var consoleLog = require('./log')(argv.verbose, argv.nocolors);
 var commandInit = function (config) {
 
 	if (fs.existsSync(config.buildFilePath)) {
-		consoleLog.error("Can't overwrite existing 'mule.js'.");
+		log.error("Can't overwrite existing 'mule.js'.");
 		process.exit(1);
 	}
 
 	// Auto create mule.js.
 	var defaultBuildJs = path.join(__dirname, 'template', 'mule.js');
 	fs.copySync(defaultBuildJs, config.buildFilePath);
-	consoleLog.info("Created new 'mule.js' at " + config.buildFilePath);
+	log.info("Created new 'mule.js' at " + config.buildFilePath);
 	process.exit(0);
 };
 
@@ -37,7 +37,7 @@ var commandCreateTask = function (config) {
 
 	var newTaskName = argv._[1];
 	if (!newTaskName) {
-		consoleLog.error("Task name not specified.");
+		log.error("Task name not specified.");
 		process.exit(1);
 	}
 
@@ -53,13 +53,13 @@ var commandCreateTask = function (config) {
 
 	var newTaskFilePath = path.join(config.tasksDir, newTaskName);
 	if (fs.existsSync(newTaskFilePath)) {
-		consoleLog.error("Can't create task, file already exists: " + newTaskFilePath);
+		log.error("Can't create task, file already exists: " + newTaskFilePath);
 		process.exit(1);
 	}
 
 	var defaultTaskFile = path.join(__dirname, 'template', 'task.js');
 	fs.copySync(defaultTaskFile, newTaskFilePath);
-	consoleLog.info("Created new task file at " + newTaskFilePath);
+	log.info("Created new task file at " + newTaskFilePath);
 };
 
 //
@@ -211,43 +211,43 @@ async function main() {
 	}
 	else {
 		if (!fs.existsSync(config.buildFilePath)) {
-			consoleLog.error("'mule.js' not found, please run task-mule in a directory that has this file.");
-			consoleLog.info("Run 'task-mule init' to create a default 'mule.js'.")
+			log.error("'mule.js' not found, please run task-mule in a directory that has this file.");
+			log.info("Run 'task-mule init' to create a default 'mule.js'.")
 			process.exit(1);
 		}
 
 		if (!fs.existsSync(config.tasksDir)) {
-			consoleLog.error("'tasks' directory doesn't exist.");
-			consoleLog.info("Run 'task-mule create-task <task-name> to create your first task.");
+			log.error("'tasks' directory doesn't exist.");
+			log.info("Run 'task-mule create-task <task-name> to create your first task.");
 			process.exit(1);
 		}
 
 		var buildConfig = require(config.buildFilePath)(conf, validate);
 
-		global.runCmd = require('./run-cmd')(consoleLog);
+		global.runCmd = require('./run-cmd')(log);
 
 		if (!requestedTaskName && !argv.tasks) {
 			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));
 			console.log(chalk.bold.yellow("To list tasks: task-mule --tasks"));
 			console.log();
 
-			displayHelp(buildConfig, consoleLog);
+			displayHelp(buildConfig, log);
 			process.exit(1);
 		}
 
-		await commandRunTask(config, buildConfig, consoleLog, requestedTaskName);
+		await commandRunTask(config, buildConfig, log, requestedTaskName);
 	}
 };
 
 main()
 	.then(() => {
-		consoleLog.info("Task-Mule finished.");		
+		log.info("Task-Mule finished.");		
 	})
 	.catch(err => {
-		consoleLog.error("Task-Mule errorred.");
-		consoleLog.error(err && err.message || err);
+		log.error("Task-Mule errorred.");
+		log.error(err && err.message || err);
 		if (err.stack) {
-			consoleLog.error(err.stack);
+			log.error(err.stack);
 		}
 		process.exit(1);
 	});
