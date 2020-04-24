@@ -2,8 +2,8 @@
   "name": "task-mule",
   "version": "2.0.0",
   "description": "A task runner for build processes with complex dependency chains.",
-  "main": "/build/index.js",
-  "types": "/build/index.d.js",
+  "main": "./build/index.js",
+  "types": "./build/index.d.js",
   "scripts": {
     "c": "npm run clean",
     "clean": "rm -rf build && rm -rf dist",
