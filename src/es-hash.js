@@ -6,8 +6,6 @@
 // The original code destroys the input object. This updated version preserves it.
 //
 
-var extend = require('extend');
-
 // <platform.node>
 var crypto = function (algorithm, data) {
     return require('crypto').createHash(algorithm).update(data).digest("hex");

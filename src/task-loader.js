@@ -1,10 +1,8 @@
 var assert = require('chai').assert;
 var fs = require("fs");
 var path = require('path');
-var E = require('linq');
 var S = require('string');
 var Task = require('./task');
-var sugar = require('sugar');
 var TaskRunner = require('./task-runner.js');
 var assert = require('chai').assert;
 
@@ -20,8 +18,6 @@ module.exports = function (autoLoadConfig, log, validate, config) {
     // 
     // Load in all tasks from files.
     //
-    var tasksValidated = {}; // Remembers tasks that have been validated, so they aren't validated again.
-    var tasksInvoked = {}; // Remembers tasks that have been invoked, so they aren't invoked again.
     var tasksDir = autoLoadConfig.tasksDir || path.join(process.cwd(), "tasks");
 
     var taskRunner = new TaskRunner(log);

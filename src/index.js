@@ -4,7 +4,6 @@ var argv = require('yargs').argv;
 var conf = require('confucious');
 var path = require('path');
 var fs = require('fs-extra');
-var globby = require('globby');
 var chalk = require('chalk');
 var validate = require('./validate');
 var S = require('string');
