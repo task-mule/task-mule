@@ -57,7 +57,6 @@ Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you 
 
 - Both procedural and config driven scripts. Create your tasks in code, provide options via configuration.
 - Run a task and all its dependencies.
-- Scheduled task running.
 - Install dependencies via npm. 
 - Basic logging, can also add your own.
 - Configuration management (via [Confucious](https://github.com/real-serious-games/confucious)).
@@ -71,7 +70,6 @@ We use Task-Mule for:
 - Our Unity3d build script;
 - Create new Unity3d projects from a template project;
 - Server deployment (see [basic example](https://github.com/ashleydavis/NodeJS-Skeleton) on github);
-- Scheduling automated tasks (eg for scraping data).
 
 We'll have more examples online in the future.
 

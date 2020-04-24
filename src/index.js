@@ -101,34 +101,6 @@ var initConfig = function (config, buildConfig, log) {
 };
 
 //
-// task-mule schedule
-//
-var commandSchedule = function (config, buildConfig, log) {
-
-	assert.isObject(config);
-	assert.isObject(buildConfig);
-	assert.isFunction(log.error);
-	assert.isFunction(log.info);
-	assert.isFunction(log.warn);
-
-	if (!fs.existsSync('schedule.json')) {
-		log.error('Expected schedule.json to specify the schedule of tasks.');
-		process.exit(1);
-	}
-
-	initConfig(config, buildConfig, log);
-
-	var taskRunner = loadTasks(config, log, validate, conf);
-	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
-
-	var schedule = JSON.parse(fs.readFileSync('schedule.json', 'utf8'));
-
-	var TaskScheduler = require('./task-scheduler');
-	var taskScheduler = new TaskScheduler(jobRunner, config, log);
-	taskScheduler.start(schedule, buildConfig);
-};
-
-//
 // task-mule <task-name>
 //
 var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
@@ -274,11 +246,6 @@ module.exports = function (config) {
 
 			displayHelp(buildConfig, log);
 			process.exit(1);
-		}
-
-		if (requestedTaskName === 'schedule') {
-			commandSchedule(config, buildConfig, log);
-			return;
 		}
 
 		return commandRunTask(config, buildConfig, log, requestedTaskName);
