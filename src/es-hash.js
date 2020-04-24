@@ -18,7 +18,7 @@ var algorithms = {
     djb2: function (str) {
         var hash = 5381,
             char;
-        for (i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             char = str.charCodeAt(i);
             hash = ((hash << 5) + hash) + char; /* hash * 33 + c */
         }
@@ -26,7 +26,7 @@ var algorithms = {
     },
     sdbm: function(str){
         var hash = 0;
-        for (i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             char = str.charCodeAt(i);
             hash = char + (hash << 6) + (hash << 16) - hash;
         }
@@ -36,7 +36,7 @@ var algorithms = {
         var hash = 0,
             char;
         if (str.length == 0) return hash;
-        for (i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             char = str.charCodeAt(i);
             hash = ((hash<<5)-hash)+char;
             hash = hash & hash; // Convert to 32bit integer
@@ -64,12 +64,12 @@ var algorithms = {
         }
 
         var range = 255, c=0;
-        for (i = 0; i < str.length; i++){
+        for (let i = 0; i < str.length; i++){
             c = str.charCodeAt(i);
             if(c>range){ range=c; }
         }
 
-        for (i = range; i >= 0; i--) {
+        for (let i = range; i >= 0; i--) {
             c = reverse(i, 32);
 
             for (j = 0; j < 8; j++) {
@@ -79,7 +79,7 @@ var algorithms = {
             table[i] = reverse(c, 32);
         }
 
-        for (i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             c = str.charCodeAt(i);
             if (c > range) {
                 throw new RangeError();
