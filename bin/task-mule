@@ -2,4 +2,4 @@
 
 process.title = 'task-mule';
 
-require('../index')();
+require('../build/index')();

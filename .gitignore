@@ -27,3 +27,4 @@ build/Release
 node_modules
 *.orig
 todo.txt
+build/

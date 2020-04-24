@@ -11,3 +11,6 @@ tsconfig.json
 typedoc.json
 todo.txt
 *.bak
+coverage/
+jest.config.js
+tasks/

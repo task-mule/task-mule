@@ -1,12 +1,25 @@
 {
   "name": "task-mule",
   "version": "2.0.0",
-  "description": "for build process with complex dependency chains.",
-  "main": "index.js",
+  "description": "A task runner for build processes with complex dependency chains.",
+  "main": "/build/index.js",
+  "types": "/build/index.d.js",
   "scripts": {
+    "c": "npm run clean",
+    "clean": "rm -rf build && rm -rf dist",
+    "b": "npm run build",
+    "build": "tsc",
+    "cb": "npm run clean-build",
+    "clean-build": "npm run clean && npm run build",
+    "bw": "tsc --watch",
+    "build:watch": "tsc --watch",
+    "cbw": "npm run clean-build:watch",
+    "clean-build:watch": "npm run clean-build && npm run build:watch",
+    "api-docs": "typedoc --options typedoc.json --out docs/api ./src/index.ts",
+    "prepublishOnly": "npm run clean && npm run test && npm run build",
     "t": "npm run test",
     "test": "jest",
-    "t:w": "npm run test:watch",
+    "tw": "npm run test:watch",
     "test:watch": "jest --watch"
   },
   "repository": {
@@ -50,7 +63,13 @@
     "yargs": "^3.10.0"
   },
   "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@types/node": "^13.13.2",
     "caller-id": "^0.1.0",
-    "jest": "^25.4.0"
+    "jest": "^25.4.0",
+    "ts-jest": "^25.4.0",
+    "ts-node": "^8.9.0",
+    "typedoc": "^0.17.4",
+    "typescript": "^3.8.3"
   }
 }
