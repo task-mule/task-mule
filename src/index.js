@@ -102,7 +102,7 @@ var initConfig = function (config, buildConfig, log) {
 //
 // task-mule <task-name>
 //
-var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
+async function commandRunTask(config, buildConfig, log, requestedTaskName) {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
@@ -116,33 +116,7 @@ var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
 	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {
-	    return jobRunner.runTask(requestedTaskName, conf, {})
-            .catch(function (err) {
-                
-                log.error('Build failed.');
-                
-                if (err.message) {
-                    log.warn(err.message);
-                }
-
-                if (err.stack) {
-                    log.warn(err.stack);
-                }
-                else {
-                    log.warn('no stack');
-                }
-				
-				if (!config.noExit) {
-                	process.exit(1);
-				}
-				
-				runDoneCallback(buildConfig);
-
-                throw err;
-            })
-	        .then(function () {
-				runDoneCallback(buildConfig);
-            });
+	    await jobRunner.runTask(requestedTaskName, conf, {});
 	}
 	else if (argv.tasks) {
 	    return taskRunner.resolveAllDependencies(conf)
@@ -155,17 +129,6 @@ var commandRunTask = function (config, buildConfig, log, requestedTaskName) {
 		throw new Error("Unexpected usage of task-mule.");
 	}
 };
-
-//
-// Run config done callback.
-//
-var runDoneCallback = function (buildConfig) {
-
-	if (buildConfig.done) {
-		assert.isFunction(buildConfig.done);
-		buildConfig.done();
-	}
-}
 
 //
 // Display usage and help.
@@ -235,14 +198,24 @@ async function main() {
 			process.exit(1);
 		}
 
-		await commandRunTask(config, buildConfig, log, requestedTaskName);
+		try {
+			await commandRunTask(config, buildConfig, log, requestedTaskName);
+		}
+		finally {
+			if (buildConfig.done) {
+				assert.isFunction(buildConfig.done, "Expected mule.js 'done' callback to be a function.");
+				const doneCallbackPromise = buildConfig.done();
+				if (doneCallbackPromise) {
+					await doneCallbackPromise;
+				}
+			}
+		}
 	}
+
+	log.info("Task-Mule finished.");
 };
 
 main()
-	.then(() => {
-		log.info("Task-Mule finished.");		
-	})
 	.catch(err => {
 		log.error("Task-Mule errorred.");
 		log.error(err && err.message || err);
