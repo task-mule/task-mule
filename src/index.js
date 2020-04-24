@@ -194,28 +194,20 @@ var displayHelp = function (buildConfig, log) {
 	console.log(chalk.bold.green(examplesTable.toString()));
 };
 
-module.exports = function (config) {
+async function main() {
+	const config = {
+		workingDirectory: process.cwd(),
+	};
 
-	config = config || {};
-
-	if (!config.workingDirectory) {
-		config.workingDirectory = process.cwd();
-	}
-	
 	config.buildFilePath = path.join(config.workingDirectory, "mule.js");
+	config.tasksDir = path.join(config.workingDirectory, 'tasks');
 
-	if (!config.tasksDir) {
-		config.tasksDir = path.join(config.workingDirectory, 'tasks');
-	}
-
-	var requestedTaskName = config.requestedTaskName || argv._[0];
+	var requestedTaskName = argv._[0];
 	if (requestedTaskName === 'init') {
 		commandInit(config);
-		process.exit(0);
 	}
 	else if (requestedTaskName === 'create-task') {
 		commandCreateTask(config);
-		process.exit(0);
 	}
 	else {
 		if (!fs.existsSync(config.buildFilePath)) {
@@ -247,7 +239,19 @@ module.exports = function (config) {
 			process.exit(1);
 		}
 
-		return commandRunTask(config, buildConfig, log, requestedTaskName);
+		await commandRunTask(config, buildConfig, log, requestedTaskName);
 	}
 };
 
+main()
+	.then(() => {
+		consoleLog.info("Task-Mule finished.");		
+	})
+	.catch(err => {
+		consoleLog.error("Task-Mule errorred.");
+		consoleLog.error(err && err.message || err);
+		if (err.stack) {
+			consoleLog.error(err.stack);
+		}
+		process.exit(1);
+	});
