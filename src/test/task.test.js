@@ -1,4 +1,4 @@
-var Task = require('../task');
+var Task = require('../../task');
 
 describe('Task', function () {
 
