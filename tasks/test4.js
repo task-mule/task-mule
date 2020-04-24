@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports = function (log, validate) {
+module.exports = function (log) {
     
     return {
         

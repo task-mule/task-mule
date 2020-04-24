@@ -11,12 +11,11 @@ var hash = require('./es-hash');
 //
 // Class that represents a task loaded from a file.
 //
-function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunner) {
+function Task(taskName, relativeFilePath, fullFilePath, log, taskRunner) {
 
     assert.isString(taskName);
     assert.isString(relativeFilePath);
     assert.isString(fullFilePath);
-    assert.isObject(validate);
     assert.isObject(taskRunner);    
     assert.isFunction(taskRunner.getTask);
 
@@ -35,7 +34,7 @@ function Task(taskName, relativeFilePath, fullFilePath, log, validate, taskRunne
             throw new Error('Task module ' + fullFilePath + ' should export a function.');
         }
         else {
-            self.module = moduleLoadFunction(log, validate, taskRunner);
+            self.module = moduleLoadFunction(log, taskRunner);
         }
     }
 

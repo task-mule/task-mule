@@ -3,19 +3,24 @@
 var fs = require('fs');
 var path = require('path');
 
-//
-// Helpers for validation.
-//
-module.exports = {
-    config: function (config, name) {
+export interface IValidate {
+    config(config: any, name: string): any;
+
+    directoryExists(path: string): void;
+
+    fileExists(path: string): void;    
+}
+
+export class Validate implements IValidate {
+    config(config: any, name: string): any {
         var value = config.get(name);
         if (!value) {
             throw new Error('Configuration option not set: ' + name);
         }
         return value;
-    },
+    }
 
-    directoryExists: function (path) {
+    directoryExists(path: string): void {
         if (!fs.existsSync(path)) {
             throw new Error('Path not found: ' + path);
         }
@@ -24,9 +29,9 @@ module.exports = {
         if (!stat.isDirectory()) {
             throw new Error('Path is not a directory: ' + path);	
         }
-    },
+    }
 
-    fileExists: function (path) {
+    fileExists(path: string): void {
         if (!fs.existsSync(path)) {
             throw new Error('Path not found: ' + path);
         }
@@ -35,5 +40,7 @@ module.exports = {
         if (stat.isDirectory()) {
             throw new Error('Path is a directory: ' + path);	
         }
-    },
-};
+    }
+}
+
+export const validate = new Validate();

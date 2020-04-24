@@ -9,10 +9,9 @@ var assert = require('chai').assert;
 //
 // Automatic loading of Grunt tasks from a collection of files.
 //
-module.exports = function (autoLoadConfig, log, validate) {
+module.exports = function (autoLoadConfig, log) {
 
     assert.isObject(autoLoadConfig);
-    assert.isObject(validate);
 
     // 
     // Load in all tasks from files.
@@ -57,7 +56,7 @@ module.exports = function (autoLoadConfig, log, validate) {
             }
             else {
                 var taskName = stripExt(S(relativeItemPath).replaceAll('\\', '/').s);
-                taskRunner.addTask(new Task(taskName, relativeItemPath, fullItemPath, log, validate, taskRunner));
+                taskRunner.addTask(new Task(taskName, relativeItemPath, fullItemPath, log, taskRunner));
             }
         }
     };

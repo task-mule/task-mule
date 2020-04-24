@@ -5,7 +5,6 @@ var conf = require('confucious');
 var path = require('path');
 var fs = require('fs-extra');
 var chalk = require('chalk');
-var validate = require('./validate');
 var S = require('string');
 var AsciiTable = require('ascii-table');
 var assert = require('chai').assert;
@@ -105,7 +104,7 @@ async function commandRunTask(config, buildConfig, requestedTaskName) {
 
 	initConfig(config, buildConfig);
 
-	var taskRunner = loadTasks(config, log, validate);
+	var taskRunner = loadTasks(config, log);
 	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {
@@ -178,7 +177,7 @@ async function main() {
 			process.exit(1);
 		}
 
-		var buildConfig = require(config.buildFilePath)(conf, validate);
+		var buildConfig = require(config.buildFilePath)(conf);
 
 		if (!requestedTaskName && !argv.tasks) {
 			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));

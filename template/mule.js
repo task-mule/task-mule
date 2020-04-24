@@ -1,9 +1,9 @@
 
 'use strict';
 
-module.exports = (config, validate) => {
+// ... load npm modules here ...
 
-	// ... load npm modules here ...
+module.exports = (config) => {
 
 	return {
 		//
