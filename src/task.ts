@@ -1,8 +1,6 @@
 import { ITaskRunner } from "./task-runner";
 import { ILog } from "./log";
-
 import { assert } from 'chai';
-var S = require('string');
 var Stopwatch = require('statman-stopwatch');
 import * as Sugar from 'sugar';
 var util = require('util');
@@ -129,26 +127,15 @@ export class Task implements ITask {
     //
     // Module loaded from the task's script file.
     //
-    private taskModule?: ITaskModule;
+    private taskModule: ITaskModule;
 
-    constructor(taskName: string, relativeFilePath: string, fullFilePath: string, log: ILog, taskRunner: ITaskRunner) {
+    constructor(taskName: string, relativeFilePath: string, fullFilePath: string, taskModule: ITaskModule, log: ILog, taskRunner: ITaskRunner) {
         this.taskName = taskName;
         this.relativeFilePath = relativeFilePath;
         this.fullFilePath = fullFilePath;
         this.log = log;
         this.taskRunner = taskRunner;
-       
-        if (S(fullFilePath).endsWith(".js")) {
-            var moduleLoadFunction = require(fullFilePath);
-            if (!moduleLoadFunction || 
-                !Sugar.Object.isFunction(moduleLoadFunction)) {
-                    
-                throw new Error('Task module ' + fullFilePath + ' should export a function.');
-            }
-            else {
-                this.taskModule = moduleLoadFunction(log, taskRunner);
-            }
-        }
+        this.taskModule = taskModule;
     }
 
     //

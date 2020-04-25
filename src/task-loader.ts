@@ -1,10 +1,10 @@
 import { ILog } from "./log";
-import { Task } from "./task";
-import { assert } from 'chai';
+import { Task, ITaskModule } from "./task";
 import * as fs from 'fs';
 import * as path from 'path';
 var S = require('string');
 import { ITaskRunner } from "./task-runner";
+import * as Sugar from 'sugar';
 
 //
 // Strips an extension from a filename.
@@ -34,8 +34,17 @@ function walkDirs(rootPath: string, subDirPath: string, log: ILog, taskRunner: I
             walkDirs(rootPath, relativeItemPath, log, taskRunner);
         }
         else {
-            const taskName = stripExt(S(relativeItemPath).replaceAll('\\', '/').s);
-            taskRunner.addTask(new Task(taskName, relativeItemPath, fullItemPath, log, taskRunner));
+            if (S(fullItemPath).endsWith(".js")) {
+                const taskName = stripExt(S(relativeItemPath).replaceAll('\\', '/').s);
+                var moduleLoadFunction = require(fullItemPath); //TODO: This fn needs to be injected to mockable.
+                if (!moduleLoadFunction || 
+                    !Sugar.Object.isFunction(moduleLoadFunction)) {                        
+                    throw new Error('Task module ' + fullItemPath + ' should export a function.');
+                }
+
+                const taskModule: ITaskModule = moduleLoadFunction(log, taskRunner);
+                taskRunner.addTask(new Task(taskName, relativeItemPath, fullItemPath, taskModule, log, taskRunner));
+            }    
         }
     }
 }
