@@ -11,8 +11,8 @@ import { assert } from 'chai';
 import { ILog, Log } from './log';
 import { IValidate, Validate } from './validate';
 import { loadTasks } from './task-loader';
-var JobRunner = require('./job-runner');
 import { TaskRunner, ITaskRunner } from './task-runner.js';
+import { JobRunner, IJobRunner } from './job-runner';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
@@ -113,7 +113,7 @@ async function commandRunTask(config: any, buildConfig: any, requestedTaskName?:
 	initConfig(config, buildConfig);
 
 	loadTasks(config, log, taskRunner);
-	var jobRunner = new JobRunner(taskRunner, log, buildConfig);
+	var jobRunner: IJobRunner = new JobRunner(taskRunner, log, buildConfig);
 
 	if (requestedTaskName) {
 	    await jobRunner.runTask(requestedTaskName, conf, {});

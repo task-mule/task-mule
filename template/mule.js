@@ -34,19 +34,19 @@ module.exports = (config) => {
 			// ... callback for unhandled exceptions thrown by your tasks ...
 		},
 
-		taskStarted: (taskInfo) => {
+		taskStarted: async (taskInfo) => {
 			// ... callback for when a task has started (not called for dependencies) ...
 		},
 
-		taskSuccess: (taskInfo) => {
+		taskSuccess: async (taskInfo) => {
 			// ... callback for when a task has succeeed (not called for dependencies) ...
 		},
 
-		taskFailure: (taskInfo) => {
+		taskFailure: async (taskInfo) => {
 			// ... callback for when a task has failed (not called for dependencies) ...
 		},
 
-		taskDone: (taskInfo) => {
+		taskDone: async (taskInfo) => {
 			// ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
 		},
 

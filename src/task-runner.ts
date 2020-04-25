@@ -81,9 +81,6 @@ export class TaskRunner implements ITaskRunner {
 	// Get a task by name, throws exception if task doesn't exist.
 	//
 	getTask(taskName: string): ITask {
-
-		assert.isString(taskName);
-
         const task = this.taskMap[taskName];
         if (!task) {
             throw new Error("Task not found: " + taskName);
