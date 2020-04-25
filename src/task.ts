@@ -14,21 +14,22 @@ export interface ITaskModule {
     //
     // Defines the other tasks that this one depends on.
     //
-    dependsOn: string[] | ((config: any) => Promise<string[]>);
+    dependsOn?: string[] | ((config: any) => Promise<string[]>);
 
     //
     // Validate the task.
     //
-    validate(config: any): Promise<void>;
+    validate?(config: any): Promise<void>;
 
     //
     // Configure the task.
     //
-    configure(config: any): Promise<any>; //TODO: Does this really need to return a value?
+    configure?(config: any): Promise<any>; //TODO: Does this really need to return a value?
 
     //
     // Invoke the task.
-    invoke(config: any): Promise<void>;
+    //
+    invoke?(config: any): Promise<void>;
 }
 
 //
@@ -146,6 +147,13 @@ export class Task implements ITask {
     }
 
     //
+    // Get depenencies.
+    //
+    getResolvedDependencies(): IDependency[] {
+        return this.resolvedDependencies;
+    }
+
+    //
     // Normalize dependencies.
     //
     private normalizeDependencies(dependencies: (string|IDependency)[]): IDependency[] {
@@ -162,7 +170,6 @@ export class Task implements ITask {
             }
         });
     };
-
 
     //
     // Gets the tasks that this task depends on.
@@ -196,10 +203,15 @@ export class Task implements ITask {
     async resolveDependencies(config: any): Promise<void> {
 
         try {
-            this.resolvedDependencies = await this.establishDependencies(config);
-            for (const dependency of this.resolvedDependencies) {
+            const resolvedDependencies = await this.establishDependencies(config);
+            for (const dependency of resolvedDependencies) {
                 dependency.resolvedTask = this.taskRunner.getTask(dependency.task);
+                if (!dependency.resolvedTask) {
+                    this.log.error(`Failed to resolve task named ${dependency.task}.`);
+                }
             }
+            
+            this.resolvedDependencies = resolvedDependencies.filter(dependency => dependency.resolvedTask);
 
             const tasks = this.resolvedDependencies.map(dependency => dependency.resolvedTask);
             for (const task of tasks) { //TODO: Can this be done in parallel?
@@ -215,13 +227,18 @@ export class Task implements ITask {
     }
 
     //
+    // Generate a key for caching.
+    //
+    genTaskKey(configOverride: any): string {
+        return this.taskName + '_' + hash(configOverride);
+    }
+
+    //
     // Validate the task.
     //
     async validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<any> { //TODO: Does this really need to return something?
-
-        var taskName = this.getName();
-        var taskKey = taskName + '_' + hash(configOverride);
-        if (tasksValidated[taskKey]) { //todo: include the hash code here for the task and it's configuration.
+        var taskKey = this.genTaskKey(configOverride);
+        if (tasksValidated[taskKey]) {
             // Skip tasks that have already been satisfied.
             return;
         }
@@ -244,19 +261,19 @@ export class Task implements ITask {
 
         tasksValidated[taskKey] = true; // Make that the task has been invoked.
 
-        if (!this.taskModule) {
-            return;
-        }
-        
-        if (!this.taskModule.validate) {
-            return;   
-        }
-
         try {                        
+            if (!this.taskModule) {
+                return;
+            }
+        
+            if (!this.taskModule.validate) {
+                return;   
+            }
+
             return await this.taskModule.validate(config);
         }
         catch (err) {
-            this.log.error("Exception while validating task: " + taskName);
+            this.log.error("Exception while validating task: " + this.taskName);
             throw err;
         }
         finally {
@@ -284,8 +301,7 @@ export class Task implements ITask {
     //
     async invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap): Promise<void> {
 
-        const taskName = this.getName();
-        const taskKey = taskName + '_' + hash(configOverride);
+        var taskKey = this.genTaskKey(configOverride);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
             return;
@@ -293,45 +309,47 @@ export class Task implements ITask {
 
         config.push(configOverride);
 
-        //
-        // Run sequential dependencies.
-        //
-        await this.configure(config); //todo: rename this to 'setup' 
-        for (const dependency of this.resolvedDependencies) { //TODO: REPEATED CODE
-            const configOverride = dependency.configure  //TODO: DOES IT REALLY NEED TO BE CONFIGURED HERE AND DURING VALIDATION?
-                && await dependency.configure(config)
-                || {};
-            if (dependency.resolvedTask) {                
-                await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
-            }
-        }
-
-        tasksInvoked[taskKey] = true; // Make that the task has been invoked.
-
-        if (!this.taskModule) {
-            this.log.warn("Task not implemented: " + taskName);
-            return;
-        }
-        
-        if (!this.taskModule.invoke) {
-            return;   
-        }
-
-        this.log.info(taskName);
-
         const stopWatch = new Stopwatch();
-        stopWatch.start();
 
         try {
+
+            //
+            // Run sequential dependencies.
+            //
+            await this.configure(config); //todo: rename this to 'setup' 
+            for (const dependency of this.resolvedDependencies) { //TODO: REPEATED CODE
+                const configOverride = dependency.configure  //TODO: DOES IT REALLY NEED TO BE CONFIGURED HERE AND DURING VALIDATION?
+                    && await dependency.configure(config)
+                    || {};
+                if (dependency.resolvedTask) {                
+                    await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
+                }
+            }
+
+            tasksInvoked[taskKey] = true; // Make that the task has been invoked.
+
+            if (!this.taskModule) {
+                this.log.warn("Task not implemented: " + this.taskName);
+                return;
+            }
+            
+            if (!this.taskModule.invoke) {
+                return;   
+            }
+
+            this.log.info(this.taskName);
+
+            stopWatch.start();
+
             const result = await this.taskModule.invoke(config);
 
             stopWatch.stop();
-            this.log.info(taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.info(this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
             return result;
         }
         catch (err) {
             stopWatch.stop();
-            this.log.error(taskName + " failed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.error(this.taskName + " failed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
             throw err;
         }
         finally {
