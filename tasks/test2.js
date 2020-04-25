@@ -10,10 +10,6 @@ module.exports = function (log) {
         dependsOn: [
             {
                 task: 'test1',
-                configure: function (config) {
-                    console.log("Configuring for dependency test1");
-                    return {};
-                },
             },
         ], 
 

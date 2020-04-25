@@ -10,19 +10,9 @@ module.exports = function (log) {
             "test2", 
             {
                 task: "test3",
-                configure: function (config) {
-                    return {
-                        foo: 'bar',
-                    };
-                },
             },
             {
                 task: "test3",
-                configure: function (config) {
-                    return {
-                        foo: 5,
-                    };
-                },
             },            
         ], 
 

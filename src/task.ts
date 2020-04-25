@@ -22,11 +22,6 @@ export interface ITaskModule {
     validate?(config: any): Promise<void>;
 
     //
-    // Configure the task.
-    //
-    configure?(config: any): Promise<any>; //TODO: Does this really need to return a value?
-
-    //
     // Invoke the task.
     //
     invoke?(config: any): Promise<void>;
@@ -42,15 +37,9 @@ export interface IDependency {
     task: string;
 
     //
-    // Configure function for the dependency.
-    //
-    configure?: (config: any) => Promise<void>;
-
-    //
     // The task that has been resolved for the dependency.
     //
-    resolvedTask?: ITask;
-   
+    resolvedTask?: ITask;   
 }
 
 //
@@ -236,7 +225,7 @@ export class Task implements ITask {
     //
     // Validate the task.
     //
-    async validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<any> { //TODO: Does this really need to return something?
+    async validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<void> {
         var taskKey = this.genTaskKey(configOverride);
         if (tasksValidated[taskKey]) {
             // Skip tasks that have already been satisfied.
@@ -245,23 +234,15 @@ export class Task implements ITask {
 
         config.push(configOverride);
 
-        //
-        // Run sequential dependencies.
-        //
-        await this.configure(config) //todo: rename this to 'setup', but probably will want a cleanup as well!!
-
-        for (const dependency of this.resolvedDependencies) {
-            const configOverride = dependency.configure 
-                && await dependency.configure(config)
-                || {};
-            if (dependency.resolvedTask) {
-                await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
-            }
-        }
-
-        tasksValidated[taskKey] = true; // Make that the task has been invoked.
-
         try {                        
+            for (const dependency of this.resolvedDependencies) {
+                if (dependency.resolvedTask) {
+                    await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
+                }
+            }
+
+            tasksValidated[taskKey] = true; // Make that the task has been invoked.
+
             if (!this.taskModule) {
                 return;
             }
@@ -279,21 +260,6 @@ export class Task implements ITask {
         finally {
             config.pop(); // Restore previous config.
         }
-    }
-
-    //
-    // Configure the task.
-    //
-    async configure(config: any): Promise<any> { //TODO: Does this really need to return something?
-        if (!this.taskModule) {
-            return {};
-        }
-        
-        if (!this.taskModule.configure) {
-            return {};   
-        }
-
-        return await this.taskModule.configure(config);
     }
 
     //
@@ -316,11 +282,7 @@ export class Task implements ITask {
             //
             // Run sequential dependencies.
             //
-            await this.configure(config); //todo: rename this to 'setup' 
-            for (const dependency of this.resolvedDependencies) { //TODO: REPEATED CODE
-                const configOverride = dependency.configure  //TODO: DOES IT REALLY NEED TO BE CONFIGURED HERE AND DURING VALIDATION?
-                    && await dependency.configure(config)
-                    || {};
+            for (const dependency of this.resolvedDependencies) {
                 if (dependency.resolvedTask) {                
                     await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
                 }

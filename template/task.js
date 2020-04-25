@@ -31,13 +31,6 @@ module.exports = (log) => {
         },
 
         //
-        // Configure prior to invoke dependencies for this task.
-        //
-        configure: async (config) => {
-            // ... modify configuration prior to invoking dependencies ...
-        },
-        
-        //
         // Invoke the task. Peform the operations required of the task.
         // Return a promise for async tasks.
         // Throw an exception or return a rejected promise to fail the task.
