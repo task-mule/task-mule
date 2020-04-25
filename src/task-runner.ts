@@ -1,16 +1,24 @@
 'use strict';
 
 import { ILog } from "./log";
+import { ITask } from "./task";
 
 var assert = require('chai').assert;
 var E = require('linq');
 var asciitree = require('ascii-tree');
 
+export interface ITaskRunner {
+    //
+	// Get a task by name, throws exception if task doesn't exist.
+	//
+	getTask(taskName: string): ITask;
+}
+
 // 
 // Responsible for finding and running tasks.
 //
 
-export class TaskRunner {
+export class TaskRunner implements ITaskRunner {
 
     //
     // Injected log.
@@ -45,7 +53,7 @@ export class TaskRunner {
 	//
 	// Get a task by name, throws exception if task doesn't exist.
 	//
-	getTask(taskName: string): any {
+	getTask(taskName: string): ITask {
 
 		assert.isString(taskName);
 
