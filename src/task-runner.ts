@@ -18,11 +18,16 @@ export interface ITaskRunner {
 	// Get a task by name, throws exception if task doesn't exist.
 	//
     getTask(taskName: string): ITask;
+
+    //
+    // Add a task.
+    //
+	addTask(task: ITask): void;
     
     //
 	// Run a named task with a particular config.
 	//
-    runTask(taskName: string, config: any, configOverride: any): Promise<void>    ;
+    runTask(taskName: string, config: any, configOverride: any): Promise<void>;
     
     //
     // List registered tasks.
@@ -67,10 +72,7 @@ export class TaskRunner implements ITaskRunner {
     //
     // Add a task.
     //
-	addTask(task: any) {
-
-		assert.isObject(task);
-
+	addTask(task: ITask): void {
         this.tasks.push(task);
         this.taskMap[task.name()] = task;                
 	}

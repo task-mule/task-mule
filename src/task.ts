@@ -26,7 +26,7 @@ export interface IDependency {
     // The task that has been resolved for the dependency.
     //
     resolvedTask?: ITask;
-    
+   
 }
 
 //
@@ -40,6 +40,11 @@ export interface IBooleanMap {
 // Represents a task.
 //
 export interface ITask {
+    //
+    // The name of this task.
+    //
+    name(): string;
+
     //
     // Resolve dependencies for the task.
     //       
