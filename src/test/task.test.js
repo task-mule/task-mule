@@ -57,7 +57,7 @@ describe('Task', function () {
 
 		init(() => {});
 
-		expect(testObject.name()).toEqual("test");
+		expect(testObject.getName()).toEqual("test");
 	});
 
 });

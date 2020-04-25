@@ -43,7 +43,7 @@ export interface ITask {
     //
     // The name of this task.
     //
-    name(): string;
+    getName(): string;
 
     //
     // Resolve dependencies for the task.
@@ -129,7 +129,7 @@ export class Task implements ITask {
     //
     // The name of this task.
     //
-    name(): string {
+    getName(): string {
         return this.taskName;
     };
 
@@ -204,7 +204,7 @@ export class Task implements ITask {
             }
         }
         catch (err) {
-            this.log.error('Exception while resolving dependencies for task: ' + this.name() + "\r\n" + err.stack);
+            this.log.error('Exception while resolving dependencies for task: ' + this.getName() + "\r\n" + err.stack);
             throw err;
         }
     };
@@ -214,7 +214,7 @@ export class Task implements ITask {
     //
     async validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<any> { //TODO: Does this really need to return something?
 
-        var taskName = this.name();
+        var taskName = this.getName();
         var taskKey = taskName + '_' + hash(configOverride);
         if (tasksValidated[taskKey]) { //todo: include the hash code here for the task and it's configuration.
             // Skip tasks that have already been satisfied.
@@ -272,7 +272,7 @@ export class Task implements ITask {
     //
     async invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap): Promise<void> {
 
-        const taskName = this.name();
+        const taskName = this.getName();
         const taskKey = taskName + '_' + hash(configOverride);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
@@ -340,7 +340,7 @@ export class Task implements ITask {
     //
     genTree(indentLevel: number): string {
         let output = this.makeIndent(indentLevel);
-        output += this.name();
+        output += this.getName();
         output += "\n";
 
         for (const dependency of this.resolvedDependencies) {

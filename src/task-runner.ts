@@ -74,7 +74,7 @@ export class TaskRunner implements ITaskRunner {
     //
 	addTask(task: ITask): void {
         this.tasks.push(task);
-        this.taskMap[task.name()] = task;                
+        this.taskMap[task.getName()] = task;                
 	}
 
 	//
