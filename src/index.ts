@@ -12,11 +12,11 @@ import { ILog, Log } from './log';
 import { IValidate, Validate } from './validate';
 var loadTasks = require('./task-loader')
 var JobRunner = require('./job-runner');
-import { TaskRunner } from './task-runner.js';
+import { TaskRunner, ITaskRunner } from './task-runner.js';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
-export const taskRunner = new TaskRunner(log);
+export const taskRunner: ITaskRunner = new TaskRunner(log);
 
 export { runCmd } from "./run-cmd";
 

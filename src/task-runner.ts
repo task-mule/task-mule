@@ -4,20 +4,45 @@ import { ILog } from "./log";
 import { ITask } from "./task";
 
 var assert = require('chai').assert;
-var E = require('linq');
 var asciitree = require('ascii-tree');
+
+//
+// Lookup table for tasks.
+//
+export interface ITaskMap {
+    [index: string]: ITask;
+}
 
 export interface ITaskRunner {
     //
 	// Get a task by name, throws exception if task doesn't exist.
 	//
-	getTask(taskName: string): ITask;
+    getTask(taskName: string): ITask;
+    
+    //
+	// Run a named task with a particular config.
+	//
+    runTask(taskName: string, config: any, configOverride: any): Promise<void>    ;
+    
+    //
+    // List registered tasks.
+    //
+    listTasks(): void;
+
+    //
+    // Resolve dependencies for all tasks.
+    //
+    resolveAllDependencies(config: any): Promise<void>;
+
+    //
+    // Resolve dependencies for a particular task.
+    //
+    resolveDependencies(taskName: string, config: any): Promise<void>;
 }
 
 // 
 // Responsible for finding and running tasks.
 //
-
 export class TaskRunner implements ITaskRunner {
 
     //
@@ -28,12 +53,12 @@ export class TaskRunner implements ITaskRunner {
 	//
 	// All tasks.
 	//
-    private tasks: any[] = []; //TODO: Should be ITask[]
+    private tasks: ITask[] = [];
 
     //
     // Map of tasks for look up by name.
     //
-    private taskMap: any = {}; //TODO: Type this.
+    private taskMap: ITaskMap = {};
 
     constructor(log: ILog) {
         this.log = log;
@@ -92,7 +117,7 @@ export class TaskRunner implements ITaskRunner {
     //
     // List registered tasks.
     //
-    listTasks() {
+    listTasks(): void {
 
         let treeOutput = "#tasks\n";
 
