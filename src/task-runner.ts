@@ -115,7 +115,6 @@ export class TaskRunner implements ITaskRunner {
         await requestedTask.invoke(configOverride, config, taskInvoked);
 	}
 
-
     //
     // List registered tasks.
     //
@@ -128,7 +127,7 @@ export class TaskRunner implements ITaskRunner {
         }
 
         this.log.info(asciitree.generate(treeOutput));
-    };
+    }
 
     //
     // Resolve dependencies for all tasks.
@@ -140,7 +139,7 @@ export class TaskRunner implements ITaskRunner {
         for (const task of this.tasks) {
             await task.resolveDependencies(config); //TODO: Can these be done in parallel?
         }
-    };
+    }
     
     //
     // Resolve dependencies for a particular task.
@@ -156,5 +155,5 @@ export class TaskRunner implements ITaskRunner {
         }        
 
         await task.resolveDependencies(config);
-    };
-};
+    }
+}
