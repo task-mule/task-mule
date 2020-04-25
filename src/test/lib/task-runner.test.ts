@@ -62,6 +62,149 @@ describe('TaskRunner', () => {
         expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {});
     });
 
+    it("exception is propagated from failed task invocation", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+
+        const error = new Error("Bad task");
+        
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: () => {},
+            validate: () => {},
+            invoke: async () => {
+                throw error;
+            }
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        await expect(() => testObject.runTask("test-task", mockConfig, configOverride))
+            .rejects
+            .toThrow();
+    });
+
+    it("exception is propagated from failed task validation", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+
+        const error = new Error("Bad task");
+        
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: () => {},
+            validate: async () => {
+                throw error;
+            },
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        await expect(() => testObject.runTask("test-task", mockConfig, configOverride))
+            .rejects
+            .toThrow();
+    });
+
+    it("exception is propagated from failed dependency resolution", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+
+        const error = new Error("Bad task");
+        
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: async () => {
+                throw error;
+            },
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        await expect(() => testObject.runTask("test-task", mockConfig, configOverride))
+            .rejects
+            .toThrow();
+    });
+
+    it("running succeeded task invokes user callbacks", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+
+        const mockCallbacks: any = {
+            taskStarted: jest.fn(),
+            taskSuccess: jest.fn(),
+            taskDone: jest.fn(),
+        };
+        testObject.setCallbacks(mockCallbacks);
+        
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: jest.fn(),
+            validate: jest.fn(),
+            invoke: jest.fn(),
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        await testObject.runTask("test-task", mockConfig, configOverride);
+
+        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith({ name: "test-task" });
+        expect(mockCallbacks.taskSuccess.mock.calls.length).toEqual(1);
+        expect(mockCallbacks.taskSuccess.mock.calls[0][0]).toEqual({ name: "test-task" });
+        expect(mockCallbacks.taskDone.mock.calls.length).toEqual(1);
+        expect(mockCallbacks.taskDone.mock.calls[0][0]).toEqual({ name: "test-task" });
+    });
+
+    it("running failed task invokes user callbacks", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+
+        const mockCallbacks: any = {
+            taskStarted: jest.fn(),
+            taskFailure: jest.fn(),
+            taskDone: jest.fn(),
+        };
+        testObject.setCallbacks(mockCallbacks);
+
+        const error = new Error("Bad task");
+        
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: jest.fn(),
+            validate: jest.fn(),
+            invoke: async () => {
+                throw error;
+            },
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        await expect(() => testObject.runTask("test-task", mockConfig, configOverride))
+            .rejects
+            .toThrow();
+
+        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith({ name: "test-task" });
+        expect(mockCallbacks.taskFailure.mock.calls.length).toEqual(1);
+        expect(mockCallbacks.taskFailure.mock.calls[0][0]).toEqual({ name: "test-task" });
+        expect(mockCallbacks.taskFailure.mock.calls[0][2]).toEqual(error);
+        expect(mockCallbacks.taskDone.mock.calls.length).toEqual(1);
+        expect(mockCallbacks.taskDone.mock.calls[0][0]).toEqual({ name: "test-task" });
+    });
+
     it("fails to run task when task doesnt exist", async () => {
 
         const mockLog: any = {};
