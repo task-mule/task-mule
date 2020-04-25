@@ -38,11 +38,6 @@ export interface ITaskRunner {
     // Resolve dependencies for all tasks.
     //
     resolveAllDependencies(config: any): Promise<void>;
-
-    //
-    // Resolve dependencies for a particular task.
-    //
-    resolveDependencies(taskName: string, config: any): Promise<void>;
 }
 
 // 
@@ -93,23 +88,18 @@ export class TaskRunner implements ITaskRunner {
 	// Run a named task with a particular config.
 	//
 	async runTask(taskName: string, config: any, configOverride: any): Promise<void> {
-
-		assert.isString(taskName);
-		assert.isObject(config);
-        assert.isObject(configOverride);
-
-        const requestedTask = this.taskMap[taskName];
-        if (!requestedTask) {
+        const task = this.taskMap[taskName];
+        if (!task) {
             throw new Error("Failed to find task: " + taskName);
         }
 
-        await this.resolveDependencies(taskName, config);
+        await task.resolveDependencies(config);
 
         const tasksValidated = {}; // Tasks that have been validated.
-        await requestedTask.validate(configOverride, config, tasksValidated);
+        await task.validate(configOverride, config, tasksValidated);
 
         const taskInvoked = {}; // Tasks that have been invoked.
-        await requestedTask.invoke(configOverride, config, taskInvoked);
+        await task.invoke(configOverride, config, taskInvoked);
 	}
 
     //
@@ -137,20 +127,5 @@ export class TaskRunner implements ITaskRunner {
             await task.resolveDependencies(config); //TODO: Can these be done in parallel?
         }
     }
-    
-    //
-    // Resolve dependencies for a particular task.
-    //
-    async resolveDependencies(taskName: string, config: any): Promise<void> {
 
-        assert.isString(taskName);
-    	assert.isObject(config);
-
-        const task = this.taskMap[taskName];
-        if (!task) {
-            throw new Error("Failed to find task: " + taskName);
-        }        
-
-        await task.resolveDependencies(config);
-    }
 }
