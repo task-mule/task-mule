@@ -313,7 +313,7 @@ export class Task implements ITask {
         }
         catch (err) {
             stopWatch.stop();
-            this.log.info(taskName + " failed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.error(taskName + " failed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
             throw err;
         }
         finally {

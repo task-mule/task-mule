@@ -52,14 +52,19 @@ export function runCmd(command: string, args?: string[], options?: SpawnOptionsW
         });
 
         cp.on('error', err => {
-            log.verbose(`Command failed: ${err.message}.`);
+            log.error(`Command failed: ${err.message}.`);
+            log.warn("=== Command === ");
+            log.warn(command + " " + (args || []).join(' '));
+            log.warn("cwd is " + (options && options.cwd || "undefined"));
+            log.warn("=== Stdout ===");            
+            log.warn(stdout);
+            log.warn("=== Stderr ===");
+            log.warn(stderr);
 
             reject(err);
         });
 
         cp.on('exit', code => {
-            log.verbose(`Command exited with code ${code}.`);
-
             if (code === 0) {
                 resolve({
                     code: code,
@@ -68,6 +73,15 @@ export function runCmd(command: string, args?: string[], options?: SpawnOptionsW
                 });
                 return;
             }
+
+            log.error(`Command exited with code ${code}.`);
+            log.warn("=== Command === ");
+            log.warn(command + " " + (args || []).join(' '));
+            log.warn("cwd is " + (options && options.cwd || "undefined"));
+            log.warn("=== Stdout ===");            
+            log.warn(stdout);
+            log.warn("=== Stderr ===");
+            log.warn(stderr);
 
             reject(new Error(`Command failed with code ${code}.`));
         });
