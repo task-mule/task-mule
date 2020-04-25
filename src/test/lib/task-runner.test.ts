@@ -62,13 +62,52 @@ describe('TaskRunner', () => {
         expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {});
     });
 
-    // it("fails to run task when task doesnt exist", async () => {
+    it("fails to run task when task doesnt exist", async () => {
 
-    //     const mockLog: any = {};
-    //     const testObject = new TaskRunner(mockLog);
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
         
-    //     expect(() => testObject.runTask("test-task", {}, {})).toThrow();
-    // });
+        await expect(() => testObject.runTask("test-task", {}, {})).rejects.toThrow();
+    });
 
+    it("can list tasks", () => {
 
+        let loggedText = "";
+
+        const mockLog: any = {
+            info: (msg: string) => {
+                loggedText += msg;
+            },
+        };
+        const testObject = new TaskRunner(mockLog);
+
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            genTree: () => `##${taskName}\n`,
+        };
+        testObject.addTask(mockTask);
+
+        testObject.listTasks();
+
+        expect(loggedText).toEqual("tasks\r\n└─ test-task");
+    });
+
+    it("can resolve all dependencies", async () => {
+
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+     
+        const taskName = "test-task";
+        const mockTask: any = {
+            getName: () => taskName,
+            resolveDependencies: jest.fn(),
+        };
+        testObject.addTask(mockTask);
+
+        const mockConfig = {};
+        await testObject.resolveAllDependencies(mockConfig);
+
+        expect(mockTask.resolveDependencies).toHaveBeenCalledWith(mockConfig);
+    });
 });
