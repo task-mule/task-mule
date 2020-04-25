@@ -131,7 +131,7 @@ export class Task implements ITask {
     //
     getName(): string {
         return this.taskName;
-    };
+    }
 
     //
     // Gets the tasks that this task depends on.
@@ -183,7 +183,7 @@ export class Task implements ITask {
         }
 
         return normalizeDependencies(dependencies);
-    };
+    }
 
     //
     // Resolve dependencies for the task.
@@ -207,7 +207,7 @@ export class Task implements ITask {
             this.log.error('Exception while resolving dependencies for task: ' + this.getName() + "\r\n" + err.stack);
             throw err;
         }
-    };
+    }
 
     //
     // Validate the task.
@@ -256,7 +256,7 @@ export class Task implements ITask {
         finally {
             config.pop(); // Restore previous config.
         }
-    };
+    }
 
     //
     // Configure the task.
@@ -265,7 +265,7 @@ export class Task implements ITask {
         if (this.module.configure) {
             return await this.module.config(config);
         }
-    };
+    }
 
     //
     // Invoke the task.
@@ -333,7 +333,7 @@ export class Task implements ITask {
         }
 
         return output;
-    };
+    }
 
     //
     // Generate a tree for the tasks dependencies.
@@ -350,7 +350,7 @@ export class Task implements ITask {
         }
 
         return output;
-    };
+    }
 };
 
 module.exports = Task;
