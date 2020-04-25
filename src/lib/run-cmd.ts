@@ -9,7 +9,7 @@
 import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { assert } from 'chai';
 import { ILog } from './log';
-import { log as globalLog } from './index';
+import { log as globalLog } from '../index';
 
 export interface IRunCmdResult {
     code: number;

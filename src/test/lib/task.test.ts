@@ -1,4 +1,4 @@
-import { ITask, Task, ITaskModule, IBooleanMap } from "../task";
+import { ITask, Task, ITaskModule, IBooleanMap } from "../../lib/task";
 
 describe('Task', () => {
 

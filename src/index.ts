@@ -8,17 +8,17 @@ import chalk from 'chalk';
 var S = require('string');
 var AsciiTable = require('ascii-table');
 import { assert } from 'chai';
-import { ILog, Log } from './log';
-import { IValidate, Validate } from './validate';
-import { loadTasks } from './task-loader';
-import { TaskRunner, ITaskRunner } from './task-runner.js';
-import { JobRunner, IJobRunner } from './job-runner';
+import { ILog, Log } from './lib/log';
+import { IValidate, Validate } from './lib/validate';
+import { loadTasks } from './lib/task-loader';
+import { TaskRunner, ITaskRunner } from './lib/task-runner.js';
+import { JobRunner, IJobRunner } from './lib/job-runner';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
 export const taskRunner: ITaskRunner = new TaskRunner(log);
 
-export { runCmd } from "./run-cmd";
+export { runCmd } from "./lib/run-cmd";
 
 //
 // task-mule init
