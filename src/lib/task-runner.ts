@@ -1,10 +1,10 @@
-'use strict';
-
 import { ILog } from "./log";
 import { ITask } from "./task";
+import { callbackify } from "util";
 
-var assert = require('chai').assert;
-var asciitree = require('ascii-tree');
+const assert = require('chai').assert;
+const asciitree = require('ascii-tree');
+const Stopwatch = require('statman-stopwatch');
 
 //
 // Lookup table for tasks.
@@ -14,6 +14,11 @@ export interface ITaskMap {
 }
 
 export interface ITaskRunner {
+    //
+    // Set user callbacks.
+    //
+    setCallbacks(callbacks: any): void;
+
     //
 	// Get a task by name, throws exception if task doesn't exist.
 	//
@@ -60,8 +65,20 @@ export class TaskRunner implements ITaskRunner {
     //
     private taskMap: ITaskMap = {};
 
+    //
+    // User-defined callbacks for particular events.
+    //
+    private callbacks?: any;
+
     constructor(log: ILog) {
         this.log = log;
+    }
+
+    //
+    // Set user callbacks.
+    //
+    setCallbacks(callbacks: any): void {
+        this.callbacks = callbacks;
     }
 
     //
@@ -84,23 +101,103 @@ export class TaskRunner implements ITaskRunner {
         return task;
 	}
 
+    //
+    // Notify a task has started.
+    //
+    private async notifyTaskStarted(taskName: string): Promise<void> {
+        if (this.callbacks && this.callbacks.taskStarted) {
+            await this.callbacks.taskStarted({ name: taskName });
+        }
+    }
+
+    //
+    // Notify that a task succeeded.
+    //
+    private async notifyTaskSuccess(taskName: string, stopwatch: any): Promise<void> {
+        if (this.callbacks && this.callbacks.taskSuccess) {
+            var elapsedTimeMins = stopwatch.read()/1000.0/60.0; 
+            await this.callbacks.taskSuccess({ name: taskName }, elapsedTimeMins);
+        }
+    }
+
+    //
+    // Notify that a task failed.
+    //
+    private async notifyTaskFailed(taskName: string, err: any, stopwatch: any): Promise<void> {
+        if (this.callbacks && this.callbacks.taskFailure) {
+            var elapsedTimeMins = stopwatch.read()/1000.0/60.0; 
+            await this.callbacks.taskFailure({ name: taskName }, elapsedTimeMins, err);
+        }         
+    }
+
+    //
+    // Notify that a task is done.
+    //
+    private async notifyTaskDone(taskName: string): Promise<void> {
+        if (this.callbacks && this.callbacks.taskDone) {
+            await this.callbacks.taskDone({ name: taskName });
+        }         
+    }
+
 	//
 	// Run a named task with a particular config.
 	//
 	async runTask(taskName: string, config: any, configOverride: any): Promise<void> {
+
         const task = this.taskMap[taskName];
         if (!task) {
             throw new Error("Failed to find task: " + taskName);
         }
 
-        await task.resolveDependencies(config);
+        configOverride = configOverride || {};
 
-        const tasksValidated = {}; // Tasks that have been validated.
-        await task.validate(configOverride, config, tasksValidated);
+        const stopwatch = new Stopwatch();
+        stopwatch.start();
 
-        const taskInvoked = {}; // Tasks that have been invoked.
-        await task.invoke(configOverride, config, taskInvoked);
-	}
+        let uncaughtExceptionCount = 0;
+        const uncaughtExceptionHandler = (err: any): void => {
+            ++uncaughtExceptionCount;
+
+            if (this.callbacks.unhandledException) {
+                this.callbacks.unhandledException(err);
+            }
+            else {
+                this.log.error("Unhandled exception occurred.");
+                this.log.error(err && err.stack || err);
+            }            
+        };
+
+        process.on('uncaughtException', uncaughtExceptionHandler);
+
+        try {
+            await this.notifyTaskStarted(taskName);
+
+            await task.resolveDependencies(config);
+
+            const tasksValidated = {}; // Tasks that have been validated.
+            await task.validate(configOverride, config, tasksValidated);
+    
+            const taskInvoked = {}; // Tasks that have been invoked.
+            await task.invoke(configOverride, config, taskInvoked);
+
+            if (uncaughtExceptionCount > 0) {
+                throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);
+            };
+
+            stopwatch.stop();
+            process.removeListener('uncaughtException', uncaughtExceptionHandler);
+            await this.notifyTaskSuccess(taskName, stopwatch);
+        }
+        catch (err) {
+            stopwatch.stop();
+            process.removeListener('uncaughtException', uncaughtExceptionHandler);
+            await this.notifyTaskFailed(taskName, err, stopwatch);
+            throw err;
+        }
+        finally {
+            await this.notifyTaskDone(taskName);
+        }
+	}    
 
     //
     // List registered tasks.

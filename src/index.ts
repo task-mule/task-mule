@@ -12,7 +12,6 @@ import { ILog, Log } from './lib/log';
 import { IValidate, Validate } from './lib/validate';
 import { loadTasks } from './lib/task-loader';
 import { TaskRunner, ITaskRunner } from './lib/task-runner.js';
-import { JobRunner, IJobRunner } from './lib/job-runner';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
@@ -112,11 +111,10 @@ async function commandRunTask(config: any, buildConfig: any, requestedTaskName?:
 
 	initConfig(config, buildConfig);
 
-	loadTasks(config, log, taskRunner);
-	var jobRunner: IJobRunner = new JobRunner(taskRunner, log, buildConfig);
+	loadTasks(config, log, taskRunner);	
 
 	if (requestedTaskName) {
-	    await jobRunner.runTask(requestedTaskName, conf, {});
+	    await taskRunner.runTask(requestedTaskName, conf, {});
 	}
 	else if (argv.tasks) {
 	    await taskRunner.resolveAllDependencies(conf)
@@ -184,7 +182,8 @@ async function main() {
 			process.exit(1);
 		}
 
-		var buildConfig = require(config.buildFilePath)(conf);
+		const buildConfig = require(config.buildFilePath)(conf);
+		taskRunner.setCallbacks(buildConfig);		
 
 		if (!requestedTaskName && !argv.tasks) {
 			console.log(chalk.bold.red("Expected parameter: task-mule <task-name>"));
