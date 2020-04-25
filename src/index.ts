@@ -10,7 +10,7 @@ var AsciiTable = require('ascii-table');
 import { assert } from 'chai';
 import { ILog, Log } from './log';
 import { IValidate, Validate } from './validate';
-var loadTasks = require('./task-loader')
+import { loadTasks } from './task-loader';
 var JobRunner = require('./job-runner');
 import { TaskRunner, ITaskRunner } from './task-runner.js';
 

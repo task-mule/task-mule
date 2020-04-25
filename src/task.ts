@@ -351,6 +351,4 @@ export class Task implements ITask {
 
         return output;
     }
-};
-
-module.exports = Task;
+}
