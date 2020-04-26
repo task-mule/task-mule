@@ -6,6 +6,8 @@ import * as Sugar from 'sugar';
 var util = require('util');
 var hash = require('./es-hash');
 
+export type DependsOnFn = (config: any) => Promise<string[]>;
+
 //
 // User-defined task module.
 //
@@ -14,7 +16,7 @@ export interface ITaskModule {
     //
     // Defines the other tasks that this one depends on.
     //
-    dependsOn?: string[] | ((config: any) => Promise<string[]>);
+    dependsOn?: string[] | DependsOnFn;
 
     //
     // Validate the task.
@@ -174,13 +176,13 @@ export class Task implements ITask {
             return [];
         }
         
-        let dependencies;
+        let dependencies: string[];
         
         if (Sugar.Object.isFunction(this.taskModule.dependsOn)) {
-            dependencies = await this.taskModule.dependsOn(config);
+            dependencies = await (this.taskModule.dependsOn as DependsOnFn)(config);
         }
         else {
-            dependencies = this.taskModule.dependsOn;
+            dependencies = this.taskModule.dependsOn as string[];
         }
 
         return this.normalizeDependencies(dependencies);
@@ -235,26 +237,26 @@ export class Task implements ITask {
         config.push(configOverride);
 
         try {                        
-            for (const dependency of this.resolvedDependencies) {
-                if (dependency.resolvedTask) {
+        for (const dependency of this.resolvedDependencies) {
+            if (dependency.resolvedTask) {
                     await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
-                }
             }
+        }
 
-            tasksValidated[taskKey] = true; // Make that the task has been invoked.
+        tasksValidated[taskKey] = true; // Make that the task has been invoked.
 
-            if (!this.taskModule) {
-                return;
-            }
-        
-            if (!this.taskModule.validate) {
-                return;   
-            }
+        if (!this.taskModule) {
+            return;
+        }
+    
+        if (!this.taskModule.validate) {
+            return;   
+        }
 
             return await this.taskModule.validate(config);
         }
         catch (err) {
-            this.log.error("Exception while validating task: " + this.taskName);
+            this.log.error(`Exception while validating task: ${this.taskName}.`);
             throw err;
         }
         finally {
@@ -303,11 +305,10 @@ export class Task implements ITask {
 
             stopWatch.start();
 
-            const result = await this.taskModule.invoke(config);
+            await this.taskModule.invoke(config);
 
             stopWatch.stop();
             this.log.info(this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
-            return result;
         }
         catch (err) {
             stopWatch.stop();
@@ -319,6 +320,9 @@ export class Task implements ITask {
         }
     }
 
+    //
+    // Make a string for indented output.
+    //
     private makeIndent(indentLevel: number): string {
         let output = "";
         while (indentLevel-- > 0) {

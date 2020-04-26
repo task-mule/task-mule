@@ -207,7 +207,7 @@ async function main() {
 			process.exit(1);
 		}
 
-		const buildConfig: IMuleConfiguration = require(config.buildFilePath)(conf);
+		const buildConfig: IMuleConfiguration = require(config.buildFilePath)();
 		taskRunner.setCallbacks(buildConfig);		
 
 		if (!requestedTaskName && !argv.tasks) {

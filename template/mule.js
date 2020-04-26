@@ -3,7 +3,7 @@
 
 // ... load npm modules here ...
 
-module.exports = (config) => {
+module.exports = () => {
 
 	return {
 		//
