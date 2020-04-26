@@ -16,9 +16,13 @@ import * as Sugar from 'sugar';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
-export const taskRunner: ITaskRunner = new TaskRunner(log);
+const taskRunner: ITaskRunner = new TaskRunner(log);
 
 export { runCmd } from "./lib/run-cmd";
+
+export async function runTask(taskName: string, config: any, configOverride: any): Promise<void> {
+	await taskRunner.runTask(taskName, config, configOverride);
+}
 
 export interface IMuleConfiguration extends ITaskRunnerCallbacks {
 
