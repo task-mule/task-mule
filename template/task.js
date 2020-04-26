@@ -12,7 +12,7 @@ module.exports = {
 
     // Can also use a function for depends on like this ...
     /*
-    dependsOn: async (config) => {
+    dependsOn: async config => {
         return [
             /// ... list of dependencies ...                
         ];
@@ -23,7 +23,7 @@ module.exports = {
     // Validate configuration for the task.
     // Throw an exception to fail the task.
     //
-    validate: async (config) => {
+    validate: async config => {
         // ... validate input to the task ...
     },
 
@@ -32,7 +32,7 @@ module.exports = {
     // Return a promise for async tasks.
     // Throw an exception or return a rejected promise to fail the task.
     //
-    invoke: async (config) => {
+    invoke: async config => {
         // ... do the action of the task ...
 
         // ... return a promise for asynchronous tasks ...

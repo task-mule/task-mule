@@ -6,7 +6,7 @@ import * as Sugar from 'sugar';
 var util = require('util');
 var hash = require('./es-hash');
 
-export type DependsOnFn = (config: any) => Promise<string[]>;
+export type DependsOnFn = (config: any) => Promise<(IDependency|string)[]>;
 
 //
 // User-defined task module.
@@ -16,7 +16,7 @@ export interface ITaskModule {
     //
     // Defines the other tasks that this one depends on.
     //
-    dependsOn?: string[] | DependsOnFn;
+    dependsOn?: (IDependency|string)[] | DependsOnFn;
 
     //
     // Validate the task.
@@ -37,6 +37,11 @@ export interface IDependency {
     // Name of the task.
     //
     task: string;
+
+    //
+    // Configuration for the task.
+    //
+    config?: any;
 
     //
     // The task that has been resolved for the dependency.
@@ -145,21 +150,23 @@ export class Task implements ITask {
     }
 
     //
+    // Normalize a single dependency.
+    private normalizeDependency(dependency: string | IDependency): IDependency {
+        if (Sugar.Object.isString(dependency)) {
+            return {
+                task: dependency,
+            }
+        }
+        else {
+            return dependency;
+        }
+    }
+
+    //
     // Normalize dependencies.
     //
     private normalizeDependencies(dependencies: (string|IDependency)[]): IDependency[] {
-        return dependencies.map(dependency => {
-            if (util.isObject(dependency)) {
-                return dependency as IDependency;
-            }
-            else {
-                assert.isString(dependency, "Expected dependency to be a string that names another task.");
-
-                return { 
-                    task: dependency as string,
-                };
-            }
-        });
+        return dependencies.map(dependency => this.normalizeDependency(dependency));
     };
 
     //
@@ -176,13 +183,13 @@ export class Task implements ITask {
             return [];
         }
         
-        let dependencies: string[];
+        let dependencies: (string|IDependency)[];
         
         if (Sugar.Object.isFunction(this.taskModule.dependsOn)) {
             dependencies = await (this.taskModule.dependsOn as DependsOnFn)(config);
         }
         else {
-            dependencies = this.taskModule.dependsOn as string[];
+            dependencies = this.taskModule.dependsOn as (string|IDependency)[];
         }
 
         return this.normalizeDependencies(dependencies);
@@ -204,10 +211,16 @@ export class Task implements ITask {
             
             this.resolvedDependencies = resolvedDependencies.filter(dependency => dependency.resolvedTask);
 
-            const tasks = this.resolvedDependencies.map(dependency => dependency.resolvedTask);
-            for (const task of tasks) { //TODO: Can this be done in parallel?
+            for (const dependency of this.resolvedDependencies) {
+                const task = dependency.resolvedTask;
                 if (task) {
-                    await task.resolveDependencies(config);
+                    config.push(dependency.config || {})
+                    try {
+                        await task.resolveDependencies(config);
+                    }
+                    finally {
+                        config.pop();
+                    }                   
                 }
             }
         }
@@ -237,23 +250,29 @@ export class Task implements ITask {
         config.push(configOverride);
 
         try {                        
-        for (const dependency of this.resolvedDependencies) {
-            if (dependency.resolvedTask) {
-                    await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
+            for (const dependency of this.resolvedDependencies) {
+                if (dependency.resolvedTask) {
+                    config.push(dependency.config || {});
+                    try {
+                        await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
+                    }
+                    finally {
+                        config.pop();
+                    }
+                }
             }
-        }
 
-        tasksValidated[taskKey] = true; // Make that the task has been invoked.
+            tasksValidated[taskKey] = true; // Make that the task has been invoked.
 
-        if (!this.taskModule) {
-            return;
-        }
-    
-        if (!this.taskModule.validate) {
-            return;   
-        }
+            if (!this.taskModule) {
+                return;
+            }
+        
+            if (!this.taskModule.validate) {
+                return;   
+            }
 
-            return await this.taskModule.validate(config);
+            await this.taskModule.validate(config);
         }
         catch (err) {
             this.log.error(`Exception while validating task: ${this.taskName}.`);
@@ -277,16 +296,16 @@ export class Task implements ITask {
 
         config.push(configOverride);
 
-        const stopWatch = new Stopwatch();
-
         try {
-
-            //
-            // Run sequential dependencies.
-            //
             for (const dependency of this.resolvedDependencies) {
                 if (dependency.resolvedTask) {                
-                    await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
+                    config.push(dependency.config || {});
+                    try {
+                        await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
+                    }
+                    finally {
+                        config.pop();
+                    }
                 }
             }
 
@@ -303,6 +322,7 @@ export class Task implements ITask {
 
             this.log.info(this.taskName);
 
+            const stopWatch = new Stopwatch();
             stopWatch.start();
 
             await this.taskModule.invoke(config);
@@ -311,8 +331,7 @@ export class Task implements ITask {
             this.log.info(this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
-            stopWatch.stop();
-            this.log.error(this.taskName + " failed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.error(this.taskName + " failed");
             throw err;
         }
         finally {
