@@ -22,11 +22,11 @@ module.exports = (config) => {
 			['What it is', 'example command line'],
 		],
 
-		initConfig: () => {
+		initConfig: async () => {
 			// ... setup default config here ...
 		},
 
-		init: () => {
+		init: async () => {
 			// ... custom initialisation code here ... 
 		},
 
@@ -50,7 +50,7 @@ module.exports = (config) => {
 			// ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
 		},
 
-		done: () => {
+		done: async () => {
 			// ... callback for when all tasks have been completed, either failed or succeeded ...
 		}
 	};

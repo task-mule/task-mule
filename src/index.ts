@@ -11,13 +11,41 @@ import { assert } from 'chai';
 import { ILog, Log } from './lib/log';
 import { IValidate, Validate } from './lib/validate';
 import { loadTasks } from './lib/task-loader';
-import { TaskRunner, ITaskRunner } from './lib/task-runner.js';
+import { TaskRunner, ITaskRunner, ITaskRunnerCallbacks } from './lib/task-runner.js';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
 export const taskRunner: ITaskRunner = new TaskRunner(log);
 
 export { runCmd } from "./lib/run-cmd";
+
+export interface IMuleConfiguration extends ITaskRunnerCallbacks {
+
+	//
+	// Options for configuring the build process.
+	//
+	options?: [string, string][];
+
+	//
+	// Examples of running the build process.
+	//
+	examples?: [string, string][];	
+
+	//
+	// Initialise default configuration.
+	//
+	initConfig?: () => Promise<void>;
+
+	//
+	// Initialise build process.
+	//
+	init?: () => Promise<void>;
+
+	//
+	// Finalized the build process.
+	//
+	done?: () => Promise<void>;
+}
 
 //
 // task-mule init
@@ -69,9 +97,9 @@ function commandCreateTask(config: any): void {
 };
 
 //
-// Init config prior to running or listing tasks.
+// Init prior to running or listing tasks.
 //
-function initConfig(config: any, buildConfig: any): any {
+async function init(config: any, buildConfig: IMuleConfiguration): Promise<void> {
 
 	assert.isObject(config);
 	assert.isObject(buildConfig);
@@ -91,25 +119,20 @@ function initConfig(config: any, buildConfig: any): any {
 	}
 
 	if (buildConfig.initConfig) {
-		buildConfig.initConfig();
+		await buildConfig.initConfig();
 	}
 
 	conf.pushArgv();
 
-	buildConfig.init();
-
-	return buildConfig;
+	if (buildConfig.init) {
+		await buildConfig.init();
+	}
 };
 
 //
 // task-mule <task-name>
 //
-async function commandRunTask(config: any, buildConfig: any, requestedTaskName?: string): Promise<void> {
-
-	assert.isObject(config);
-	assert.isObject(buildConfig);
-
-	initConfig(config, buildConfig);
+async function commandRunTask(config: any, buildConfig: IMuleConfiguration, requestedTaskName?: string): Promise<void> {
 
 	loadTasks(config, log, taskRunner);	
 
@@ -130,28 +153,31 @@ async function commandRunTask(config: any, buildConfig: any, requestedTaskName?:
 //
 // Display usage and help.
 //
-function displayHelp(buildConfig: any): void {
+function displayHelp(buildConfig: IMuleConfiguration): void {
 
 	log.info("Usage: task-mule <task-name> [options]\n");
 
-	var optionsTable = new AsciiTable('Options');
-	optionsTable
-		.setHeading('Options', 'Description');
+	if (buildConfig.options) {
+		var optionsTable = new AsciiTable('Options');
+		optionsTable.setHeading('Options', 'Description');
 
-	buildConfig.options.forEach((option: any) => {
-		optionsTable.addRow(option[0], option[1]);
-	});
+		buildConfig.options.forEach((option: any) => {
+			optionsTable.addRow(option[0], option[1]);
+		});
 
-	console.log(chalk.bold.green(optionsTable.toString()));
+		console.log(chalk.bold.green(optionsTable.toString()));
+	}	
 
-	var examplesTable = new AsciiTable('Examples');
-	examplesTable.setHeading('What?', 'Command Line');
-
-	buildConfig.examples.forEach((example: any) => {
-		examplesTable.addRow(example[0], example[1]);
-	});
-
-	console.log(chalk.bold.green(examplesTable.toString()));
+	if (buildConfig.examples) {
+		var examplesTable = new AsciiTable('Examples');
+		examplesTable.setHeading('What?', 'Command Line');
+	
+		buildConfig.examples.forEach((example: any) => {
+			examplesTable.addRow(example[0], example[1]);
+		});
+	
+		console.log(chalk.bold.green(examplesTable.toString()));
+	}
 };
 
 async function main() {
@@ -182,7 +208,7 @@ async function main() {
 			process.exit(1);
 		}
 
-		const buildConfig = require(config.buildFilePath)(conf);
+		const buildConfig: IMuleConfiguration = require(config.buildFilePath)(conf);
 		taskRunner.setCallbacks(buildConfig);		
 
 		if (!requestedTaskName && !argv.tasks) {
@@ -194,16 +220,15 @@ async function main() {
 			process.exit(1);
 		}
 
+		await init(config, buildConfig);
+
 		try {
 			await commandRunTask(config, buildConfig, requestedTaskName);
 		}
 		finally {
 			if (buildConfig.done) {
 				assert.isFunction(buildConfig.done, "Expected mule.js 'done' callback to be a function.");
-				const doneCallbackPromise = buildConfig.done();
-				if (doneCallbackPromise) {
-					await doneCallbackPromise;
-				}
+				await buildConfig.done();
 			}
 		}
 	}
