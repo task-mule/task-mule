@@ -285,19 +285,14 @@ export class Task implements ITask {
         }
     }
 
-    private makeIndent(indentLevel: number, first: boolean): string {
+    private makeIndent(indentLevel: number): string {
         let indentStr: string = "";
         if (indentLevel > 1) {
             indentStr += "│   ".repeat(indentLevel-1);
         }
 
         if (indentLevel > 0) {
-            if (first) {            
-                indentStr += "├──";
-            }
-            else {
-                indentStr += "│   ";
-            }
+            indentStr += "├──";
         }
 
         return indentStr;
@@ -314,7 +309,7 @@ export class Task implements ITask {
             return;
         }
 
-        this.log.task(this.makeIndent(indentLevel, true) + this.taskName);
+        this.log.task(this.makeIndent(indentLevel) + this.taskName);
 
         config.push(configOverride);
 
@@ -348,10 +343,10 @@ export class Task implements ITask {
             await this.taskModule.invoke(config);
 
             stopWatch.stop();
-            this.log.task(this.makeIndent(indentLevel, false) + this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
-            this.log.task(this.makeIndent(indentLevel, false) + this.taskName + " failed");
+            this.log.task(this.makeIndent(indentLevel+1) + " failed");
             throw err;
         }
         finally {
