@@ -4,7 +4,7 @@ module.exports = function (log) {
     
     return {
         
-        description: "<description of your task>",
+        description: "test4",
         
         dependsOn: [
             "test2", 
@@ -16,20 +16,11 @@ module.exports = function (log) {
             },            
         ], 
 
-        //
-        // Validate configuration for the task.
-        // Throw an exception to fail the build.
-        //
-        validate: function (config) {
+        validate: async config => {
             console.log('Validate test4');
         },
         
-        //
-        // Invoke the task. Peform the operations required of the task.
-        // Throw an exception to fail the build.
-        // Return a promise for async tasks.
-        //
-        invoke: function (config) {
+        invoke: async config => {
             console.log('Invoke test4');
         },
     };

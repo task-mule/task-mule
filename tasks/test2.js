@@ -6,27 +6,17 @@ module.exports = function (log) {
         
         description: "test2",
         
-        // Tasks that this one depends on (these tasks will run before this one).
         dependsOn: [
             {
                 task: 'test1',
             },
         ], 
 
-        //
-        // Validate configuration for the task.
-        // Throw an exception to fail the build.
-        //
-        validate: function (config) {
+        validate: async config => {
             console.log('Validate test2');
         },
         
-        //
-        // Invoke the task. Peform the operations required of the task.
-        // Throw an exception to fail the build.
-        // Return a promise for async tasks.
-        //
-        invoke: function (config) {
+        invoke: async config => {
             console.log('Invoke test2');
         },
     };
