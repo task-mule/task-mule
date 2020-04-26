@@ -185,12 +185,14 @@ export class Task implements ITask {
         
         let dependencies: (string|IDependency)[];
         
-        if (Sugar.Object.isFunction(this.taskModule.dependsOn)) {
-            dependencies = await (this.taskModule.dependsOn as DependsOnFn)(config);
-        }
-        else {
+        if (Sugar.Object.isArray(this.taskModule.dependsOn)) {
             dependencies = this.taskModule.dependsOn as (string|IDependency)[];
         }
+        else {
+            dependencies = await (this.taskModule.dependsOn as DependsOnFn)(config);
+        }
+
+        assert.isArray(dependencies, `Expected dependencies of task ${this.taskName} to be an array of strings of dependency definition objects.`);
 
         return this.normalizeDependencies(dependencies);
     }
