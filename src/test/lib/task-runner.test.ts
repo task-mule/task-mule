@@ -159,11 +159,9 @@ describe('TaskRunner', () => {
         const mockConfig = {};
         await testObject.runTask("test-task", mockConfig, configOverride);
 
-        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith({ name: "test-task" });
-        expect(mockCallbacks.taskSuccess.mock.calls.length).toEqual(1);
-        expect(mockCallbacks.taskSuccess.mock.calls[0][0]).toEqual({ name: "test-task" });
-        expect(mockCallbacks.taskDone.mock.calls.length).toEqual(1);
-        expect(mockCallbacks.taskDone.mock.calls[0][0]).toEqual({ name: "test-task" });
+        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith("test-task");
+        expect(mockCallbacks.taskSuccess).toHaveBeenCalledWith("test-task");
+        expect(mockCallbacks.taskDone).toHaveBeenCalledWith("test-task");
     });
 
     it("running failed task invokes user callbacks", async () => {
@@ -197,12 +195,9 @@ describe('TaskRunner', () => {
             .rejects
             .toThrow();
 
-        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith({ name: "test-task" });
-        expect(mockCallbacks.taskFailure.mock.calls.length).toEqual(1);
-        expect(mockCallbacks.taskFailure.mock.calls[0][0]).toEqual({ name: "test-task" });
-        expect(mockCallbacks.taskFailure.mock.calls[0][2]).toEqual(error);
-        expect(mockCallbacks.taskDone.mock.calls.length).toEqual(1);
-        expect(mockCallbacks.taskDone.mock.calls[0][0]).toEqual({ name: "test-task" });
+        expect(mockCallbacks.taskStarted).toHaveBeenCalledWith("test-task");
+        expect(mockCallbacks.taskFailure).toHaveBeenCalledWith("test-task", error);
+        expect(mockCallbacks.taskDone).toHaveBeenCalledWith("test-task");
     });
 
     it("fails to run task when task doesnt exist", async () => {

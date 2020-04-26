@@ -13,6 +13,39 @@ export interface ITaskMap {
     [index: string]: ITask;
 }
 
+
+
+//
+// Defines global callbacks for the task runner.
+//
+export interface ITaskRunnerCallbacks {
+
+    //
+    // Callback invoked when a task has started.
+    //
+    taskStarted?(taskName: string): Promise<void>;
+
+    //
+    // Callback invoked when a task has succeeded.
+    //
+    taskSuccess?(taskName: string): Promise<void>;
+
+    //
+    // Callback invoked when a task has failed.
+    //
+    taskFailure?(taskName: string, err: Error): Promise<void>;
+
+    //
+    // Callback invoked when a task has finished (either success or failure).
+    //
+    taskDone?(taskName: string): Promise<void>;
+
+    //
+    // Called for unhandle exceptions.
+    //
+    unhandledException?(err: Error): void;
+}
+
 export interface ITaskRunner {
     //
     // Set user callbacks.
@@ -68,7 +101,7 @@ export class TaskRunner implements ITaskRunner {
     //
     // User-defined callbacks for particular events.
     //
-    private callbacks?: any;
+    private callbacks?: ITaskRunnerCallbacks;
 
     constructor(log: ILog) {
         this.log = log;
@@ -77,7 +110,7 @@ export class TaskRunner implements ITaskRunner {
     //
     // Set user callbacks.
     //
-    setCallbacks(callbacks: any): void {
+    setCallbacks(callbacks: ITaskRunnerCallbacks): void {
         this.callbacks = callbacks;
     }
 
@@ -106,27 +139,25 @@ export class TaskRunner implements ITaskRunner {
     //
     private async notifyTaskStarted(taskName: string): Promise<void> {
         if (this.callbacks && this.callbacks.taskStarted) {
-            await this.callbacks.taskStarted({ name: taskName });
+            await this.callbacks.taskStarted(taskName);
         }
     }
 
     //
     // Notify that a task succeeded.
     //
-    private async notifyTaskSuccess(taskName: string, stopwatch: any): Promise<void> {
+    private async notifyTaskSuccess(taskName: string): Promise<void> {
         if (this.callbacks && this.callbacks.taskSuccess) {
-            var elapsedTimeMins = stopwatch.read()/1000.0/60.0; 
-            await this.callbacks.taskSuccess({ name: taskName }, elapsedTimeMins);
+            await this.callbacks.taskSuccess(taskName);
         }
     }
 
     //
     // Notify that a task failed.
     //
-    private async notifyTaskFailed(taskName: string, err: any, stopwatch: any): Promise<void> {
+    private async notifyTaskFailed(taskName: string, err: Error): Promise<void> {
         if (this.callbacks && this.callbacks.taskFailure) {
-            var elapsedTimeMins = stopwatch.read()/1000.0/60.0; 
-            await this.callbacks.taskFailure({ name: taskName }, elapsedTimeMins, err);
+            await this.callbacks.taskFailure(taskName, err);
         }         
     }
 
@@ -135,7 +166,7 @@ export class TaskRunner implements ITaskRunner {
     //
     private async notifyTaskDone(taskName: string): Promise<void> {
         if (this.callbacks && this.callbacks.taskDone) {
-            await this.callbacks.taskDone({ name: taskName });
+            await this.callbacks.taskDone(taskName);
         }         
     }
 
@@ -151,14 +182,11 @@ export class TaskRunner implements ITaskRunner {
 
         configOverride = configOverride || {};
 
-        const stopwatch = new Stopwatch();
-        stopwatch.start();
-
         let uncaughtExceptionCount = 0;
         const uncaughtExceptionHandler = (err: any): void => {
             ++uncaughtExceptionCount;
 
-            if (this.callbacks.unhandledException) {
+            if (this.callbacks && this.callbacks.unhandledException) {
                 this.callbacks.unhandledException(err);
             }
             else {
@@ -184,14 +212,12 @@ export class TaskRunner implements ITaskRunner {
                 throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);
             };
 
-            stopwatch.stop();
             process.removeListener('uncaughtException', uncaughtExceptionHandler);
-            await this.notifyTaskSuccess(taskName, stopwatch);
+            await this.notifyTaskSuccess(taskName);
         }
         catch (err) {
-            stopwatch.stop();
             process.removeListener('uncaughtException', uncaughtExceptionHandler);
-            await this.notifyTaskFailed(taskName, err, stopwatch);
+            await this.notifyTaskFailed(taskName, err);
             throw err;
         }
         finally {
