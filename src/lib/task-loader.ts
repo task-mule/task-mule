@@ -36,13 +36,19 @@ function walkDirs(rootPath: string, subDirPath: string, log: ILog, taskRunner: I
         else {
             if (S(fullItemPath).endsWith(".js")) {
                 const taskName = stripExt(S(relativeItemPath).replaceAll('\\', '/').s);
-                var moduleLoadFunction = require(fullItemPath); //TODO: This fn needs to be injected to mockable.
-                if (!moduleLoadFunction || 
-                    !Sugar.Object.isFunction(moduleLoadFunction)) {                        
-                    throw new Error('Task module ' + fullItemPath + ' should export a function.');
+                const loadedModule = require(fullItemPath); //TODO: This fn needs to be injected to mockable.
+                if (!loadedModule) {
+                    throw new Error(`Task module ${fullItemPath} should export an object or a function that returns an object.`);
                 }
 
-                const taskModule: ITaskModule = moduleLoadFunction(log, taskRunner);
+                let taskModule: ITaskModule;
+                if (Sugar.Object.isFunction(loadedModule)) {
+                    taskModule = loadedModule();                    
+                }
+                else {
+                    taskModule = loadedModule;
+                }
+
                 taskRunner.addTask(new Task(taskName, relativeItemPath, fullItemPath, taskModule, log, taskRunner));
             }    
         }
