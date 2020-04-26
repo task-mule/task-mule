@@ -1,7 +1,7 @@
 'use strict';
 
 import { argv } from 'yargs';
-var conf = require('confucious');
+var confucious = require('confucious');
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import chalk from 'chalk';
@@ -32,19 +32,14 @@ export interface IMuleConfiguration extends ITaskRunnerCallbacks {
 	examples?: [string, string][];	
 
 	//
-	// Initialise default configuration.
-	//
-	initConfig?: () => Promise<void>;
-
-	//
 	// Initialise build process.
 	//
-	init?: () => Promise<void>;
+	init?: (config: any) => Promise<void>;
 
 	//
 	// Finalized the build process.
 	//
-	done?: () => Promise<void>;
+	done?: (config: any) => Promise<void>;
 }
 
 //
@@ -94,39 +89,7 @@ function commandCreateTask(config: any): void {
 	var defaultTaskFile = path.join(__dirname, 'template', 'task.js');
 	fs.copySync(defaultTaskFile, newTaskFilePath);
 	log.info("Created new task file at " + newTaskFilePath);
-};
-
-//
-// Init prior to running or listing tasks.
-//
-async function init(config: any, buildConfig: IMuleConfiguration): Promise<void> {
-
-	var defaultConfigFilePath = path.join(config.workingDirectory, 'config.json');
-	if (fs.existsSync(defaultConfigFilePath)) {
-
-		log.verbose("Loading config from file: " + defaultConfigFilePath);
-
-		conf.pushJsonFile(defaultConfigFilePath);
-	}
-
-	conf.pushEnv();
-
-	if (config.defaultConfig) {
-		conf.push(config.defaultConfig)
-	}
-
-	if (buildConfig.initConfig) {
-		assert.isFunction(buildConfig.initConfig, "Expected mule.js 'initConfig' callback to be a function.");
-		await buildConfig.initConfig();
-	}
-
-	conf.pushArgv();
-
-	if (buildConfig.init) {
-		assert.isFunction(buildConfig.init, "Expected mule.js 'init' callback to be a function.");
-		await buildConfig.init();
-	}
-};
+}
 
 //
 // task-mule <task-name>
@@ -136,10 +99,10 @@ async function commandRunTask(config: any, buildConfig: IMuleConfiguration, requ
 	loadTasks(config, log, taskRunner);	
 
 	if (requestedTaskName) {
-	    await taskRunner.runTask(requestedTaskName, conf, {});
+	    await taskRunner.runTask(requestedTaskName, confucious, {});
 	}
 	else if (argv.tasks) {
-	    await taskRunner.resolveAllDependencies(conf)
+	    await taskRunner.resolveAllDependencies(confucious)
 
 		taskRunner.listTasks();
 		process.exit(1);
@@ -219,15 +182,18 @@ async function main() {
 			process.exit(1);
 		}
 
-		await init(config, buildConfig);
-
+		if (buildConfig.init) {
+			assert.isFunction(buildConfig.init, "Expected mule.js 'init' callback to be a function.");
+			await buildConfig.init(confucious);
+		}
+	
 		try {
 			await commandRunTask(config, buildConfig, requestedTaskName);
 		}
 		finally {
 			if (buildConfig.done) {
 				assert.isFunction(buildConfig.done, "Expected mule.js 'done' callback to be a function.");
-				await buildConfig.done();
+				await buildConfig.done(confucious);
 			}
 		}
 	}
