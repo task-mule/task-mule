@@ -101,9 +101,6 @@ function commandCreateTask(config: any): void {
 //
 async function init(config: any, buildConfig: IMuleConfiguration): Promise<void> {
 
-	assert.isObject(config);
-	assert.isObject(buildConfig);
-
 	var defaultConfigFilePath = path.join(config.workingDirectory, 'config.json');
 	if (fs.existsSync(defaultConfigFilePath)) {
 
@@ -119,12 +116,14 @@ async function init(config: any, buildConfig: IMuleConfiguration): Promise<void>
 	}
 
 	if (buildConfig.initConfig) {
+		assert.isFunction(buildConfig.initConfig, "Expected mule.js 'initConfig' callback to be a function.");
 		await buildConfig.initConfig();
 	}
 
 	conf.pushArgv();
 
 	if (buildConfig.init) {
+		assert.isFunction(buildConfig.init, "Expected mule.js 'init' callback to be a function.");
 		await buildConfig.init();
 	}
 };
