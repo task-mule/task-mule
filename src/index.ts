@@ -12,6 +12,7 @@ import { ILog, Log } from './lib/log';
 import { IValidate, Validate } from './lib/validate';
 import { loadTasks } from './lib/task-loader';
 import { TaskRunner, ITaskRunner, ITaskRunnerCallbacks } from './lib/task-runner.js';
+import * as Sugar from 'sugar';
 
 export const log: ILog = new Log();
 export const validate: IValidate = new Validate();
@@ -170,7 +171,15 @@ async function main() {
 			process.exit(1);
 		}
 
-		const buildConfig: IMuleConfiguration = require(config.buildFilePath)();
+		const buildConfigModule = require(config.buildFilePath);
+		let buildConfig: IMuleConfiguration;
+		if (Sugar.Object.isFunction(buildConfigModule)) {
+			buildConfig = buildConfigModule();
+		}
+		else {
+			buildConfig = buildConfigModule;
+		}
+
 		taskRunner.setCallbacks(buildConfig);		
 
 		if (!requestedTaskName && !argv.tasks) {
