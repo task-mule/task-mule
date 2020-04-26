@@ -42,12 +42,7 @@ export class Log implements ILog {
 			console.log(msg);
 		}
 		else {
-			if (enableVerbose) {
-				console.log(chalk.bold.green(msg));
-			}
-			else {
-				console.log(chalk.green(msg));
-			}
+			console.log(chalk.bold.green(msg));
 		}
 	}
 
@@ -62,8 +57,7 @@ export class Log implements ILog {
 		}
 	}
 
-	task (taskName: string): void {
+	task(taskName: string): void {
 		console.log(chalk.cyan(taskName));
 	}
 }
-

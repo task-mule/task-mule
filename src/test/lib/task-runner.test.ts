@@ -59,7 +59,7 @@ describe('TaskRunner', () => {
 
         expect(mockTask.resolveDependencies).toHaveBeenCalledWith(mockConfig);
         expect(mockTask.validate).toHaveBeenCalledWith(configOverride, mockConfig, {});
-        expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {});
+        expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {}, 0);
     });
 
     it("exception is propagated from failed task invocation", async () => {

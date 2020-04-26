@@ -1,10 +1,8 @@
 import { ILog } from "./log";
 import { ITask } from "./task";
-import { callbackify } from "util";
 
 const assert = require('chai').assert;
 const asciitree = require('ascii-tree');
-const Stopwatch = require('statman-stopwatch');
 
 //
 // Lookup table for tasks.
@@ -12,8 +10,6 @@ const Stopwatch = require('statman-stopwatch');
 export interface ITaskMap {
     [index: string]: ITask;
 }
-
-
 
 //
 // Defines global callbacks for the task runner.
@@ -206,7 +202,7 @@ export class TaskRunner implements ITaskRunner {
             await task.validate(configOverride, config, tasksValidated);
     
             const taskInvoked = {}; // Tasks that have been invoked.
-            await task.invoke(configOverride, config, taskInvoked);
+            await task.invoke(configOverride, config, taskInvoked, 0);
 
             if (uncaughtExceptionCount > 0) {
                 throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);

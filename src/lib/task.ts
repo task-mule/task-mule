@@ -78,7 +78,7 @@ export interface ITask {
     //
     // Invoke the task.
     //
-    invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap): Promise<void>;
+    invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void>;
 
     //
     // Generate a tree for the tasks dependencies.
@@ -285,16 +285,36 @@ export class Task implements ITask {
         }
     }
 
+    private makeIndent(indentLevel: number, first: boolean): string {
+        let indentStr: string = "";
+        if (indentLevel > 1) {
+            indentStr += "│   ".repeat(indentLevel-1);
+        }
+
+        if (indentLevel > 0) {
+            if (first) {            
+                indentStr += "├──";
+            }
+            else {
+                indentStr += "│   ";
+            }
+        }
+
+        return indentStr;
+    }
+
     //
     // Invoke the task.
     //
-    async invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap): Promise<void> {
+    async invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void> {
 
         var taskKey = this.genTaskKey(configOverride);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
             return;
         }
+
+        this.log.task(this.makeIndent(indentLevel, true) + this.taskName);
 
         config.push(configOverride);
 
@@ -303,7 +323,7 @@ export class Task implements ITask {
                 if (dependency.resolvedTask) {                
                     config.push(dependency.config || {});
                     try {
-                        await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked);
+                        await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked, indentLevel+1);
                     }
                     finally {
                         config.pop();
@@ -322,18 +342,16 @@ export class Task implements ITask {
                 return;   
             }
 
-            this.log.info(this.taskName);
-
             const stopWatch = new Stopwatch();
             stopWatch.start();
 
             await this.taskModule.invoke(config);
 
             stopWatch.stop();
-            this.log.info(this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+            this.log.task(this.makeIndent(indentLevel, false) + this.taskName + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
-            this.log.error(this.taskName + " failed");
+            this.log.task(this.makeIndent(indentLevel, false) + this.taskName + " failed");
             throw err;
         }
         finally {
@@ -344,7 +362,7 @@ export class Task implements ITask {
     //
     // Make a string for indented output.
     //
-    private makeIndent(indentLevel: number): string {
+    private makeTreeIndent(indentLevel: number): string {
         let output = "";
         while (indentLevel-- > 0) {
             output += "#";
@@ -357,7 +375,7 @@ export class Task implements ITask {
     // Generate a tree for the tasks dependencies.
     //
     genTree(indentLevel: number): string {
-        let output = this.makeIndent(indentLevel);
+        let output = this.makeTreeIndent(indentLevel);
         output += this.getName();
         output += "\n";
 

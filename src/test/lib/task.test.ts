@@ -14,6 +14,7 @@ describe('Task', () => {
 			warn: () => {},
 			error: mockErrorFn,
 			verbose: () => {},
+			task: () => {},
 		};
 
 		mockTaskRunner = {
@@ -317,7 +318,7 @@ describe('Task', () => {
 
 		const configOverride = {};
 		const taskInvoked: IBooleanMap = {};
-		await testObject.invoke(configOverride, mockConfig, taskInvoked);
+		await testObject.invoke(configOverride, mockConfig, taskInvoked, 0);
 
 		expect(taskInvoked[testObject.genTaskKey(configOverride)]).toBe(true);
 		expect(mockPushConfigFn).toHaveBeenCalledWith(configOverride);
@@ -336,7 +337,7 @@ describe('Task', () => {
 			pop: () => {},
 		}
 
-		await testObject.invoke({}, mockConfig, {});
+		await testObject.invoke({}, mockConfig, {}, 0);
 
 		expect(mockInvokeFn).toHaveBeenCalledWith(mockConfig);
 	});
@@ -367,9 +368,9 @@ describe('Task', () => {
 		const tasksInvoked = {};
 
 		await testObject.resolveDependencies(mockConfig);
-		await testObject.invoke(configOverride, mockConfig, tasksInvoked);
+		await testObject.invoke(configOverride, mockConfig, tasksInvoked, 0);
 
-		expect(mockNestedInvokeFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksInvoked);
+		expect(mockNestedInvokeFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksInvoked, 1);
 	});
 
 	it("wont invoke twice", async () => {
@@ -386,8 +387,8 @@ describe('Task', () => {
 
 		const tasksInvoked = {};
 
-		await testObject.invoke({}, mockConfig, tasksInvoked);
-		await testObject.invoke({}, mockConfig, tasksInvoked);
+		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
+		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
 
 		expect(mockNestedInvokeFn).toHaveBeenCalledTimes(1);
 	});
