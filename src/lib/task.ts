@@ -311,7 +311,9 @@ export class Task implements ITask {
         this.log.verbose(`Running task ${this.taskName}, hash key = ${taskKey}.`);
         this.log.verbose(`Config: ${JSON.stringify(configOverride, null, 4)}`);
 
-        this.log.task(this.makeIndent(indentLevel) + this.taskName);
+        const args = Object.keys(configOverride).map(key => `${key} = ${JSON.stringify(configOverride[key])}`).join(', ');
+
+        this.log.task(`${this.makeIndent(indentLevel)}${this.taskName} {${args}}`);
 
         config.push(configOverride);
 
