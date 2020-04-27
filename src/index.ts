@@ -149,11 +149,12 @@ function displayHelp(buildConfig: IMuleConfiguration): void {
 
 async function main() {
 	const config: any = {
-		workingDirectory: process.cwd(),
+		cwd: process.cwd(),
 	};
 
-	config.buildFilePath = path.join(config.workingDirectory, "mule.js");
-	config.tasksDir = path.join(config.workingDirectory, 'tasks');
+	config.buildFilePath = path.join(config.cwd, "mule.js");
+	config.tasksDir = path.join(config.cwd, 'tasks');
+	confucious.push(config);
 
 	var requestedTaskName = argv._[0];
 	if (requestedTaskName === 'init') {

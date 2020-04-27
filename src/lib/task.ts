@@ -246,21 +246,19 @@ export class Task implements ITask {
         var taskKey = this.genTaskKey(configOverride);
         if (tasksValidated[taskKey]) {
             // Skip tasks that have already been satisfied.
+            this.log.verbose(`${this.taskName} already validated, hash key = ${taskKey}.`);
             return;
         }
+
+        this.log.verbose(`Validating task ${this.taskName}, hash key = ${taskKey}.`);
+        this.log.verbose(`Config: ${JSON.stringify(configOverride, null, 4)}`);
 
         config.push(configOverride);
 
         try {                        
             for (const dependency of this.resolvedDependencies) {
                 if (dependency.resolvedTask) {
-                    config.push(dependency.config || {});
-                    try {
-                        await dependency.resolvedTask.validate(configOverride, config, tasksValidated);
-                    }
-                    finally {
-                        config.pop();
-                    }
+                    await dependency.resolvedTask.validate(dependency.config || {}, config, tasksValidated);
                 }
             }
 
@@ -306,23 +304,24 @@ export class Task implements ITask {
         var taskKey = this.genTaskKey(configOverride);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
+            this.log.verbose(`${this.taskName} already completed, hash key = ${taskKey}.`);
             return;
         }
+
+        this.log.verbose(`Running task ${this.taskName}, hash key = ${taskKey}.`);
+        this.log.verbose(`Config: ${JSON.stringify(configOverride, null, 4)}`);
 
         this.log.task(this.makeIndent(indentLevel) + this.taskName);
 
         config.push(configOverride);
 
+        const stopWatch = new Stopwatch();
+        stopWatch.start();
+
         try {
             for (const dependency of this.resolvedDependencies) {
                 if (dependency.resolvedTask) {                
-                    config.push(dependency.config || {});
-                    try {
-                        await dependency.resolvedTask.invoke(configOverride, config, tasksInvoked, indentLevel+1);
-                    }
-                    finally {
-                        config.pop();
-                    }
+                    await dependency.resolvedTask.invoke(dependency.config || {}, config, tasksInvoked, indentLevel+1);
                 }
             }
 
@@ -330,23 +329,16 @@ export class Task implements ITask {
 
             if (!this.taskModule) {
                 this.log.warn("Task not implemented: " + this.taskName);
-                return;
             }
-            
-            if (!this.taskModule.invoke) {
-                return;   
+            else if (this.taskModule.invoke) {    
+                await this.taskModule.invoke(config);    
             }
-
-            const stopWatch = new Stopwatch();
-            stopWatch.start();
-
-            await this.taskModule.invoke(config);
 
             stopWatch.stop();
             this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
-            this.log.task(this.makeIndent(indentLevel+1) + " failed");
+            this.log.error(this.makeIndent(indentLevel+1) + " failed");
             throw err;
         }
         finally {
