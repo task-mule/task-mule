@@ -149,7 +149,7 @@ function displayHelp(buildConfig: IMuleConfiguration): void {
 
 async function main() {
 	const config: any = {
-		cwd: process.cwd(),
+		cwd: path.normalize(process.cwd()).replace(/\\/g, "/"),
 	};
 
 	config.buildFilePath = path.join(config.cwd, "mule.js");
