@@ -286,7 +286,7 @@ export class Task implements ITask {
 
         const args = Object.keys(localConfig).map(key => `${key} = ${JSON.stringify(localConfig[key])}`).join(', ');
 
-        this.log.task(`${this.makeIndent(indentLevel)}${this.taskName} {${args}}`);
+        this.log.task(`${this.makeIndent(indentLevel)} ${this.taskName} {${args}}`);
 
         const stopWatch = new Stopwatch();
         stopWatch.start();
