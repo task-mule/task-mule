@@ -65,12 +65,7 @@ describe('Task', () => {
 				"another-task": mockAnotherTask,
 			}
 		);
-
-		const mockConfig = {
-			push: () => {},
-			pop: () => {},
-		};
-		const dependencies = await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies({});
 
 		expect(dependencies.length).toEqual(1);
 		
@@ -96,11 +91,8 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {
-			push: () => {},
-			pop: () => {},
-		};
-		const dependencies = await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies({});
+
 		expect(dependencies.length).toEqual(1);
 		
 		const dependency = dependencies[0];
@@ -128,8 +120,8 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {};		
-		const dependencies = await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies({});
+
 		expect(dependencies.length).toEqual(1);
 		
 		const dependency = dependencies[0];
@@ -152,12 +144,8 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {
-			push: () => {},
-			pop: () => {},
-		};
-		
-		const dependencies = await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies({});
+
 		expect(dependencies.length).toEqual(2);
 		expect(dependencies[0].task).toEqual("one-task");
 		expect(dependencies[1].task).toEqual("two-task");
@@ -176,11 +164,7 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {
-			push: () => {},
-			pop: () => {},
-		};
-		const dependencies = await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies({});
 
 		expect(dependencies.length).toEqual(1);
 		
@@ -193,20 +177,11 @@ describe('Task', () => {
 
 		init({});
 
-		const mockPushConfigFn = jest.fn();
-		const mockPopConfigFn = jest.fn();
-		const mockConfig: any = {
-			push: mockPushConfigFn,
-			pop: mockPopConfigFn,
-		}
-
 		const configOverride = {};
 		const tasksValidated: IBooleanMap = {};
-		await testObject.validate(configOverride, mockConfig, tasksValidated);
+		await testObject.validate(configOverride, {}, tasksValidated);
 
 		expect(tasksValidated[testObject.genTaskKey(configOverride)]).toBe(true);
-		expect(mockPushConfigFn).toHaveBeenCalledWith(configOverride);
-		expect(mockPopConfigFn).toHaveBeenCalledWith();
 	});
 
 	it("validation invokes task-module callback", async () => {
@@ -216,11 +191,7 @@ describe('Task', () => {
 			validate: mockValidateFn,
 		});
 
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
-
+		const mockConfig: any = {};		
 		await testObject.validate({}, mockConfig, {});
 
 		expect(mockValidateFn).toHaveBeenCalledWith(mockConfig);
@@ -245,13 +216,9 @@ describe('Task', () => {
 		);
 
 		const configOverride = {};
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
+		const mockConfig: any = {};
 		const tasksValidated = {};
 
-		await testObject.resolveDependencies(mockConfig);
 		await testObject.validate(configOverride, mockConfig, tasksValidated);
 
 		expect(mockNestedValidateFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksValidated);
@@ -264,11 +231,7 @@ describe('Task', () => {
 			validate: mockValidateFn,
 		});
 
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
-
+		const mockConfig: any = {};
 		const tasksValidated = {};
 
 		await testObject.validate({}, mockConfig, tasksValidated);
@@ -281,20 +244,12 @@ describe('Task', () => {
 
 		init({});
 
-		const mockPushConfigFn = jest.fn();
-		const mockPopConfigFn = jest.fn();
-		const mockConfig: any = {
-			push: mockPushConfigFn,
-			pop: mockPopConfigFn,
-		}
-
+		const mockConfig: any = {};
 		const configOverride = {};
 		const taskInvoked: IBooleanMap = {};
 		await testObject.invoke(configOverride, mockConfig, taskInvoked, 0);
 
 		expect(taskInvoked[testObject.genTaskKey(configOverride)]).toBe(true);
-		expect(mockPushConfigFn).toHaveBeenCalledWith(configOverride);
-		expect(mockPopConfigFn).toHaveBeenCalledWith();
 	});
 
 	it("invoke invokes task-module callback", async () => {
@@ -304,11 +259,7 @@ describe('Task', () => {
 			invoke: mockInvokeFn,
 		});
 
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
-
+		const mockConfig: any = {};
 		await testObject.invoke({}, mockConfig, {}, 0);
 
 		expect(mockInvokeFn).toHaveBeenCalledWith(mockConfig);
@@ -333,13 +284,8 @@ describe('Task', () => {
 		);
 
 		const configOverride = {};
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
+		const mockConfig: any = {};		
 		const tasksInvoked = {};
-
-		await testObject.resolveDependencies(mockConfig);
 		await testObject.invoke(configOverride, mockConfig, tasksInvoked, 0);
 
 		expect(mockNestedInvokeFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksInvoked, 1);
@@ -352,13 +298,8 @@ describe('Task', () => {
 			invoke: mockNestedInvokeFn,
 		});
 
-		const mockConfig: any = {
-			push: () => {},
-			pop: () => {},
-		}
-
+		const mockConfig: any = {};
 		const tasksInvoked = {};
-
 		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
 		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
 
@@ -369,8 +310,7 @@ describe('Task', () => {
 
 		init({});
 
-		const mockConfig: any = {};
-		const tree = await testObject.genTree(1, mockConfig);
+		const tree = await testObject.genTree(1, {}, {});
 		expect(tree).toEqual("#test\n");
 	});
 
@@ -395,13 +335,7 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {
-			push: () => {},
-			pop: () => {},
-		};
-		await testObject.resolveDependencies(mockConfig);
-
-		const tree = await testObject.genTree(1, mockConfig);
+		const tree = await testObject.genTree(1, {}, {});
 		expect(tree).toEqual("#test\n##one-task\n##two-task\n");
 	});
 

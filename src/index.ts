@@ -1,7 +1,6 @@
 'use strict';
 
 import { argv } from 'yargs';
-var confucious = require('confucious');
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import chalk from 'chalk';
@@ -20,8 +19,8 @@ const taskRunner: ITaskRunner = new TaskRunner(log);
 
 export { runCmd } from "./lib/run-cmd";
 
-export async function runTask(taskName: string, config: any, configOverride: any): Promise<void> {
-	await taskRunner.runTask(taskName, config, configOverride);
+export async function runTask(taskName: string, globalConfig: any, localConfig: any): Promise<void> {
+	await taskRunner.runTask(taskName, globalConfig, localConfig);
 }
 
 export interface IMuleConfiguration extends ITaskRunnerCallbacks {
@@ -104,10 +103,10 @@ async function commandRunTask(config: any, buildConfig: IMuleConfiguration, requ
 	loadTasks(config, log, taskRunner);	
 
 	if (requestedTaskName) {
-	    await taskRunner.runTask(requestedTaskName, confucious, {});
+	    await taskRunner.runTask(requestedTaskName, config, {});
 	}
 	else if (argv.tasks) {
-		await taskRunner.listTasks(confucious);
+		await taskRunner.listTasks(config, {});
 		process.exit(1);
 	} 
 	else {
@@ -152,7 +151,6 @@ async function main() {
 
 	config.buildFilePath = path.join(config.cwd, "mule.js");
 	config.tasksDir = path.join(config.cwd, 'tasks');
-	confucious.push(config);
 
 	var requestedTaskName = argv._[0];
 	if (requestedTaskName === 'init') {
@@ -196,7 +194,7 @@ async function main() {
 
 		if (buildConfig.init) {
 			assert.isFunction(buildConfig.init, "Expected mule.js 'init' callback to be a function.");
-			await buildConfig.init(confucious);
+			await buildConfig.init(config);
 		}
 	
 		try {
@@ -205,7 +203,7 @@ async function main() {
 		finally {
 			if (buildConfig.done) {
 				assert.isFunction(buildConfig.done, "Expected mule.js 'done' callback to be a function.");
-				await buildConfig.done(confucious);
+				await buildConfig.done(config);
 			}
 		}
 	}

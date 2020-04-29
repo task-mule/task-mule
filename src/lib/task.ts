@@ -66,24 +66,19 @@ export interface ITask {
     getName(): string;
 
     //
-    // Resolve dependencies for the task.
-    //       
-    resolveDependencies(config: any): Promise<IDependency[]>;
-
-    //
     // Validate the task.
     //
-    validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<any>;
+    validate(localConfig: any, globalConfig: any, tasksValidated: IBooleanMap): Promise<any>;
 
     //
     // Invoke the task.
     //
-    invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void>;
+    invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void>;
 
     //
     // Generate a tree for the tasks dependencies.
     //
-    genTree(indentLevel: number, config: any): Promise<string>;
+    genTree(indentLevel: number, localConfig: any, globalConfig: any): Promise<string>;
 }
 
 //
@@ -212,31 +207,32 @@ export class Task implements ITask {
     //
     // Generate a key for caching.
     //
-    genTaskKey(configOverride: any): string {
-        return this.taskName + '_' + hash(configOverride);
+    genTaskKey(localConfig: any): string {
+        return this.taskName + '_' + hash(localConfig);
     }
 
     //
     // Validate the task.
     //
-    async validate(configOverride: any, config: any, tasksValidated: IBooleanMap): Promise<void> {
-        var taskKey = this.genTaskKey(configOverride);
+    async validate(localConfig: any, globalConfig: any, tasksValidated: IBooleanMap): Promise<void> {
+
+        var taskKey = this.genTaskKey(localConfig);
         if (tasksValidated[taskKey]) {
             // Skip tasks that have already been satisfied.
             this.log.verbose(`${this.taskName} already validated, hash key = ${taskKey}.`);
             return;
         }
 
-        this.log.verbose(`Validating task ${this.taskName}, hash key = ${taskKey}.`);
-        this.log.verbose(`Config: ${JSON.stringify(configOverride, null, 4)}`);
+        const taskConfig = Object.assign({}, globalConfig, localConfig);
 
-        config.push(configOverride);
+        this.log.verbose(`Validating task ${this.taskName}, hash key = ${taskKey}.`);
+        this.log.verbose(`Config: ${JSON.stringify(taskConfig, null, 4)}`);
 
         try {                        
-            const resolvedDependencies = await this.resolveDependencies(config);
+            const resolvedDependencies = await this.resolveDependencies(taskConfig);
             for (const dependency of resolvedDependencies) {
                 if (dependency.resolvedTask) {
-                    await dependency.resolvedTask.validate(dependency.config || {}, config, tasksValidated);
+                    await dependency.resolvedTask.validate(dependency.config || {}, taskConfig, tasksValidated);
                 }
             }
 
@@ -250,14 +246,11 @@ export class Task implements ITask {
                 return;   
             }
 
-            await this.taskModule.validate(config);
+            await this.taskModule.validate(taskConfig);
         }
         catch (err) {
             this.log.error(`Exception while validating task: ${this.taskName}.`);
             throw err;
-        }
-        finally {
-            config.pop(); // Restore previous config.
         }
     }
 
@@ -277,32 +270,32 @@ export class Task implements ITask {
     //
     // Invoke the task.
     //
-    async invoke(configOverride: any, config: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void> {
+    async invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void> {
 
-        var taskKey = this.genTaskKey(configOverride);
+        var taskKey = this.genTaskKey(localConfig);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
             this.log.verbose(`${this.taskName} already completed, hash key = ${taskKey}.`);
             return;
         }
+       
+        const taskConfig = Object.assign({}, globalConfig, localConfig);
 
         this.log.verbose(`Running task ${this.taskName}, hash key = ${taskKey}.`);
-        this.log.verbose(`Config: ${JSON.stringify(configOverride, null, 4)}`);
+        this.log.verbose(`Config: ${JSON.stringify(taskConfig, null, 4)}`);
 
-        const args = Object.keys(configOverride).map(key => `${key} = ${JSON.stringify(configOverride[key])}`).join(', ');
+        const args = Object.keys(localConfig).map(key => `${key} = ${JSON.stringify(localConfig[key])}`).join(', ');
 
         this.log.task(`${this.makeIndent(indentLevel)}${this.taskName} {${args}}`);
-
-        config.push(configOverride);
 
         const stopWatch = new Stopwatch();
         stopWatch.start();
 
         try {
-            const resolvedDependencies = await this.resolveDependencies(config);
+            const resolvedDependencies = await this.resolveDependencies(taskConfig);
             for (const dependency of resolvedDependencies) {
                 if (dependency.resolvedTask) {           
-                    await dependency.resolvedTask.invoke(dependency.config || {}, config, tasksInvoked, indentLevel+1);
+                    await dependency.resolvedTask.invoke(dependency.config || {}, taskConfig, tasksInvoked, indentLevel+1);
                 }
             }
 
@@ -312,7 +305,7 @@ export class Task implements ITask {
                 this.log.warn("Task not implemented: " + this.taskName);
             }
             else if (this.taskModule.invoke) {    
-                await this.taskModule.invoke(config);    
+                await this.taskModule.invoke(taskConfig);    
             }
 
             stopWatch.stop();
@@ -321,9 +314,6 @@ export class Task implements ITask {
         catch (err) {
             this.log.error(this.makeIndent(indentLevel+1) + " failed");
             throw err;
-        }
-        finally {
-            config.pop(); // Restore previous config.
         }
     }
 
@@ -342,15 +332,16 @@ export class Task implements ITask {
     //
     // Generate a tree for the tasks dependencies.
     //
-    async genTree(indentLevel: number, config: any): Promise<string> {
+    async genTree(indentLevel: number, localConfig: any, globalConfig: any): Promise<string> {
         let output = this.makeTreeIndent(indentLevel);
         output += this.getName();
         output += "\n";
 
-        const resolvedDependencies = await this.resolveDependencies(config);
+        const taskConfig = Object.assign({}, globalConfig, localConfig);
+        const resolvedDependencies = await this.resolveDependencies(taskConfig);
         for (const dependency of resolvedDependencies) {
             if (dependency.resolvedTask) {
-                output += await dependency.resolvedTask.genTree(indentLevel+1, config);            
+                output += await dependency.resolvedTask.genTree(indentLevel+1, dependency.config || {}, taskConfig);
             }
         }
 

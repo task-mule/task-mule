@@ -1,5 +1,6 @@
 import { ILog } from "./log";
 import { ITask } from "./task";
+import { globalAgent } from "http";
 
 const assert = require('chai').assert;
 const asciitree = require('ascii-tree');
@@ -61,12 +62,12 @@ export interface ITaskRunner {
     //
 	// Run a named task with a particular config.
 	//
-    runTask(taskName: string, config: any, configOverride: any): Promise<void>;
+    runTask(taskName: string, globalConfig: any, localConfig: any): Promise<void>;
     
     //
     // List registered tasks.
     //
-    listTasks(config: any): Promise<void>;
+    listTasks(globalConfig: any, localConfig: any): Promise<void>;
 }
 
 // 
@@ -164,14 +165,15 @@ export class TaskRunner implements ITaskRunner {
 	//
 	// Run a named task with a particular config.
 	//
-	async runTask(taskName: string, config: any, configOverride: any): Promise<void> {
+	async runTask(taskName: string, globalConfig: any, localConfig: any): Promise<void> {
 
         const task = this.taskMap[taskName];
         if (!task) {
             throw new Error("Failed to find task: " + taskName);
         }
 
-        configOverride = configOverride || {};
+        globalConfig = globalConfig || {};
+        localConfig = localConfig || {};
 
         let uncaughtExceptionCount = 0;
         const uncaughtExceptionHandler = (err: any): void => {
@@ -191,13 +193,11 @@ export class TaskRunner implements ITaskRunner {
         try {
             await this.notifyTaskStarted(taskName);
 
-            await task.resolveDependencies(config);
-
             const tasksValidated = {}; // Tasks that have been validated.
-            await task.validate(configOverride, config, tasksValidated);
+            await task.validate(localConfig, globalConfig, tasksValidated);
     
             const taskInvoked = {}; // Tasks that have been invoked.
-            await task.invoke(configOverride, config, taskInvoked, 0);
+            await task.invoke(localConfig, globalConfig, taskInvoked, 0);
 
             if (uncaughtExceptionCount > 0) {
                 throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);
@@ -219,12 +219,12 @@ export class TaskRunner implements ITaskRunner {
     //
     // List registered tasks.
     //
-    async listTasks(config: any): Promise<void> {
+    async listTasks(globalConfig: any, localConfig: any): Promise<void> {
 
         let treeOutput = "#tasks\n";
 
         for (const task of this.tasks) {
-            treeOutput += await task.genTree(2, config);
+            treeOutput += await task.genTree(2, globalAgent, localConfig);
         }
 
         this.log.info(asciitree.generate(treeOutput));

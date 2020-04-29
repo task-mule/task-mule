@@ -47,7 +47,6 @@ describe('TaskRunner', () => {
         const taskName = "test-task";
         const mockTask: any = {
             getName: () => taskName,
-            resolveDependencies: jest.fn(),
             validate: jest.fn(),
             invoke: jest.fn(),
         };
@@ -57,7 +56,6 @@ describe('TaskRunner', () => {
         const mockConfig = {};
         await testObject.runTask("test-task", mockConfig, configOverride);
 
-        expect(mockTask.resolveDependencies).toHaveBeenCalledWith(mockConfig);
         expect(mockTask.validate).toHaveBeenCalledWith(configOverride, mockConfig, {});
         expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {}, 0);
     });
@@ -226,8 +224,7 @@ describe('TaskRunner', () => {
         };
         testObject.addTask(mockTask);
 
-        const mockConfig = {};
-        await testObject.listTasks(mockConfig);
+        await testObject.listTasks({}, {});
 
         expect(loggedText).toEqual("tasks\r\n└─ test-task");
     });

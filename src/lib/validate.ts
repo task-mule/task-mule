@@ -12,7 +12,7 @@ export interface IValidate {
 
 export class Validate implements IValidate {
     config(config: any, name: string): any {
-        var value = config.get(name);
+        var value = config[name];
         if (!value) {
             throw new Error('Configuration option not set: ' + name);
         }
