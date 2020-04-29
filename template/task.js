@@ -34,7 +34,5 @@ module.exports = {
     //
     invoke: async config => {
         // ... do the action of the task ...
-
-        // ... return a promise for asynchronous tasks ...
     },
 };
