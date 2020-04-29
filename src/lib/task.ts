@@ -68,7 +68,7 @@ export interface ITask {
     //
     // Resolve dependencies for the task.
     //       
-    resolveDependencies(config: any): Promise<void>;
+    resolveDependencies(config: any): Promise<IDependency[]>;
 
     //
     // Validate the task.
@@ -83,7 +83,7 @@ export interface ITask {
     //
     // Generate a tree for the tasks dependencies.
     //
-    genTree(indentLevel: number): string;
+    genTree(indentLevel: number, config: any): Promise<string>;
 }
 
 //
@@ -105,11 +105,6 @@ export class Task implements ITask {
     // The full path to the task's script file.
     //
     private fullFilePath: string;
-
-    //
-    // Depdencies that have been resolved for this task.
-    //
-    private resolvedDependencies: IDependency[] = [];
     
     //
     // Injected logger.
@@ -140,13 +135,6 @@ export class Task implements ITask {
     //
     getName(): string {
         return this.taskName;
-    }
-
-    //
-    // Get depenencies.
-    //
-    getResolvedDependencies(): IDependency[] {
-        return this.resolvedDependencies;
     }
 
     //
@@ -200,10 +188,10 @@ export class Task implements ITask {
     //
     // Resolve dependencies for the task.
     //       
-    async resolveDependencies(config: any): Promise<void> {
+    async resolveDependencies(config: any): Promise<IDependency[]> {
 
         try {
-            const resolvedDependencies = await this.establishDependencies(config);
+            let resolvedDependencies = await this.establishDependencies(config);
             for (const dependency of resolvedDependencies) {
                 dependency.resolvedTask = this.taskRunner.getTask(dependency.task);
                 if (!dependency.resolvedTask) {
@@ -211,20 +199,9 @@ export class Task implements ITask {
                 }
             }
             
-            this.resolvedDependencies = resolvedDependencies.filter(dependency => dependency.resolvedTask);
-
-            for (const dependency of this.resolvedDependencies) {
-                const task = dependency.resolvedTask;
-                if (task) {
-                    config.push(dependency.config || {})
-                    try {
-                        await task.resolveDependencies(config);
-                    }
-                    finally {
-                        config.pop();
-                    }                   
-                }
-            }
+            resolvedDependencies = resolvedDependencies.filter(dependency => dependency.resolvedTask);
+            
+            return resolvedDependencies;
         }
         catch (err) {
             this.log.error('Exception while resolving dependencies for task: ' + this.getName() + "\r\n" + err.stack);
@@ -256,7 +233,8 @@ export class Task implements ITask {
         config.push(configOverride);
 
         try {                        
-            for (const dependency of this.resolvedDependencies) {
+            const resolvedDependencies = await this.resolveDependencies(config);
+            for (const dependency of resolvedDependencies) {
                 if (dependency.resolvedTask) {
                     await dependency.resolvedTask.validate(dependency.config || {}, config, tasksValidated);
                 }
@@ -321,8 +299,9 @@ export class Task implements ITask {
         stopWatch.start();
 
         try {
-            for (const dependency of this.resolvedDependencies) {
-                if (dependency.resolvedTask) {                
+            const resolvedDependencies = await this.resolveDependencies(config);
+            for (const dependency of resolvedDependencies) {
+                if (dependency.resolvedTask) {           
                     await dependency.resolvedTask.invoke(dependency.config || {}, config, tasksInvoked, indentLevel+1);
                 }
             }
@@ -363,14 +342,15 @@ export class Task implements ITask {
     //
     // Generate a tree for the tasks dependencies.
     //
-    genTree(indentLevel: number): string {
+    async genTree(indentLevel: number, config: any): Promise<string> {
         let output = this.makeTreeIndent(indentLevel);
         output += this.getName();
         output += "\n";
 
-        for (const dependency of this.resolvedDependencies) {
+        const resolvedDependencies = await this.resolveDependencies(config);
+        for (const dependency of resolvedDependencies) {
             if (dependency.resolvedTask) {
-                output += dependency.resolvedTask.genTree(indentLevel+1);            
+                output += await dependency.resolvedTask.genTree(indentLevel+1, config);            
             }
         }
 

@@ -107,9 +107,7 @@ async function commandRunTask(config: any, buildConfig: IMuleConfiguration, requ
 	    await taskRunner.runTask(requestedTaskName, confucious, {});
 	}
 	else if (argv.tasks) {
-	    await taskRunner.resolveAllDependencies(confucious)
-
-		taskRunner.listTasks();
+		await taskRunner.listTasks(confucious);
 		process.exit(1);
 	} 
 	else {

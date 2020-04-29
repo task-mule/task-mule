@@ -66,12 +66,7 @@ export interface ITaskRunner {
     //
     // List registered tasks.
     //
-    listTasks(): void;
-
-    //
-    // Resolve dependencies for all tasks.
-    //
-    resolveAllDependencies(config: any): Promise<void>;
+    listTasks(config: any): Promise<void>;
 }
 
 // 
@@ -224,27 +219,14 @@ export class TaskRunner implements ITaskRunner {
     //
     // List registered tasks.
     //
-    listTasks(): void {
+    async listTasks(config: any): Promise<void> {
 
         let treeOutput = "#tasks\n";
 
         for (const task of this.tasks) {
-            treeOutput += task.genTree(2);
+            treeOutput += await task.genTree(2, config);
         }
 
         this.log.info(asciitree.generate(treeOutput));
     }
-
-    //
-    // Resolve dependencies for all tasks.
-    //
-    async resolveAllDependencies(config: any): Promise<void> {
-
-        assert.isObject(config);
-
-        for (const task of this.tasks) {
-            await task.resolveDependencies(config); //TODO: Can these be done in parallel?
-        }
-    }
-
 }

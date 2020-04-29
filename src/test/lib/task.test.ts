@@ -37,9 +37,7 @@ describe('Task', () => {
 
 		init({});
 
-		await testObject.resolveDependencies({});
-
-		const dependencies = testObject.getResolvedDependencies();
+		const dependencies = await testObject.resolveDependencies({});
 		expect(dependencies).toEqual([]);
 	});
 
@@ -49,21 +47,15 @@ describe('Task', () => {
 			dependsOn: [ "non-existing-task" ],
 		});
 
-		await testObject.resolveDependencies({});
+		const dependencies = await testObject.resolveDependencies({});
 
 		expect(mockErrorFn).toHaveBeenCalled();
-
-		const dependencies = testObject.getResolvedDependencies();
 		expect(dependencies).toEqual([]);
 	});
 
 	it("can resolve string dependency", async () => {
 
-		const mockNestedResolveFn = jest.fn();
-
-		const mockAnotherTask: any = {
-			resolveDependencies: mockNestedResolveFn,
-		};
+		const mockAnotherTask: any = {};
 
 		init(
 			{
@@ -78,24 +70,18 @@ describe('Task', () => {
 			push: () => {},
 			pop: () => {},
 		};
-		await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies(mockConfig);
 
-		const dependencies = testObject.getResolvedDependencies();
 		expect(dependencies.length).toEqual(1);
 		
 		const dependency = dependencies[0];
 		expect(dependency.task).toEqual("another-task");
 		expect(dependency.resolvedTask).toEqual(mockAnotherTask);
-		expect(mockNestedResolveFn).toHaveBeenCalledWith(mockConfig);
 	});
 
 	it("can resolve object dependency", async () => {
 
-		const mockNestedResolveFn = jest.fn();
-
-		const mockAnotherTask: any = {
-			resolveDependencies: mockNestedResolveFn,
-		};
+		const mockAnotherTask: any = {};
 
 		init(
 			{
@@ -114,24 +100,17 @@ describe('Task', () => {
 			push: () => {},
 			pop: () => {},
 		};
-		await testObject.resolveDependencies(mockConfig);
-
-		const dependencies = testObject.getResolvedDependencies();
+		const dependencies = await testObject.resolveDependencies(mockConfig);
 		expect(dependencies.length).toEqual(1);
 		
 		const dependency = dependencies[0];
 		expect(dependency.task).toEqual("another-task");
 		expect(dependency.resolvedTask).toEqual(mockAnotherTask);
-		expect(mockNestedResolveFn).toHaveBeenCalledWith(mockConfig);
 	});
 
 	it("can resolve object dependency with config", async () => {
 
-		const mockNestedResolveFn = jest.fn();
-
-		const mockAnotherTask: any = {
-			resolveDependencies: mockNestedResolveFn,
-		};
+		const mockAnotherTask: any = {};
 
 		const dependencyConfig = {};
 
@@ -149,15 +128,15 @@ describe('Task', () => {
 			}
 		);
 
-		const mockConfig = {
-			push: jest.fn(),
-			pop: jest.fn(),
-		};
-		await testObject.resolveDependencies(mockConfig);
-
-		expect(mockConfig.push).toHaveBeenCalledWith(dependencyConfig);
-		expect(mockConfig.pop).toHaveBeenCalled();
+		const mockConfig = {};		
+		const dependencies = await testObject.resolveDependencies(mockConfig);
+		expect(dependencies.length).toEqual(1);
+		
+		const dependency = dependencies[0];
+		expect(dependency.task).toEqual("another-task");
+		expect(dependency.resolvedTask).toEqual(mockAnotherTask);
 	});	
+
 	it("can resolve dependencies", async () => {
 
 		const mockTask1: any = { resolveDependencies: () => {}, };
@@ -177,9 +156,8 @@ describe('Task', () => {
 			push: () => {},
 			pop: () => {},
 		};
-		await testObject.resolveDependencies(mockConfig);
-
-		const dependencies = testObject.getResolvedDependencies();
+		
+		const dependencies = await testObject.resolveDependencies(mockConfig);
 		expect(dependencies.length).toEqual(2);
 		expect(dependencies[0].task).toEqual("one-task");
 		expect(dependencies[1].task).toEqual("two-task");
@@ -187,11 +165,7 @@ describe('Task', () => {
 
 	it("can resolve dependency using function", async () => {
 
-		const mockNestedResolveFn = jest.fn();
-
-		const mockAnotherTask: any = {
-			resolveDependencies: mockNestedResolveFn,
-		};
+		const mockAnotherTask: any = {};
 
 		init(
 			{
@@ -206,15 +180,13 @@ describe('Task', () => {
 			push: () => {},
 			pop: () => {},
 		};
-		await testObject.resolveDependencies(mockConfig);
+		const dependencies = await testObject.resolveDependencies(mockConfig);
 
-		const dependencies = testObject.getResolvedDependencies();
 		expect(dependencies.length).toEqual(1);
 		
 		const dependency = dependencies[0];
 		expect(dependency.task).toEqual("another-task");
 		expect(dependency.resolvedTask).toEqual(mockAnotherTask);
-		expect(mockNestedResolveFn).toHaveBeenCalledWith(mockConfig);
 	});
 
 	it("can validate", async () => {
@@ -393,11 +365,12 @@ describe('Task', () => {
 		expect(mockNestedInvokeFn).toHaveBeenCalledTimes(1);
 	});
 
-	it('can gen tree', () => {
+	it('can gen tree', async () => {
 
 		init({});
 
-		const tree = testObject.genTree(1);
+		const mockConfig: any = {};
+		const tree = await testObject.genTree(1, mockConfig);
 		expect(tree).toEqual("#test\n");
 	});
 
@@ -428,7 +401,7 @@ describe('Task', () => {
 		};
 		await testObject.resolveDependencies(mockConfig);
 
-		const tree = testObject.genTree(1);
+		const tree = await testObject.genTree(1, mockConfig);
 		expect(tree).toEqual("#test\n##one-task\n##two-task\n");
 	});
 
