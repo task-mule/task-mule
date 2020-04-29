@@ -57,7 +57,7 @@ function commandInit(config: any): void {
 	}
 
 	// Auto create mule.js.
-	var defaultBuildJs = path.join(__dirname, 'template', 'mule.js');
+	var defaultBuildJs = path.join(__dirname, "..", "template", "mule.js");
 	fs.copySync(defaultBuildJs, config.buildFilePath);
 	log.info("Created new 'mule.js' at " + config.buildFilePath);
 	process.exit(0);
@@ -90,7 +90,7 @@ function commandCreateTask(config: any): void {
 		process.exit(1);
 	}
 
-	var defaultTaskFile = path.join(__dirname, 'template', 'task.js');
+	var defaultTaskFile = path.join(__dirname, "..", "template", "task.js");
 	fs.copySync(defaultTaskFile, newTaskFilePath);
 	log.info("Created new task file at " + newTaskFilePath);
 }
