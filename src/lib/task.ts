@@ -293,7 +293,11 @@ export class Task implements ITask {
 
         const args = Object.keys(localConfig).map(key => `${key} = ${JSON.stringify(localConfig[key])}`).join(', ');
 
-        this.log.task(`${this.makeIndent(indentLevel)} ${this.taskName} {${args}}`);
+        let indentStr = this.makeIndent(indentLevel);
+        if (indentStr.length > 0) {
+            indentStr += " ";
+        }
+        this.log.task(`${indentStr}${this.taskName} {${args}}`);
 
         const stopWatch = new Stopwatch();
         stopWatch.start();
@@ -319,13 +323,14 @@ export class Task implements ITask {
                 tasksInvoked[taskKey] = true;   // Track the task as invoked.
                 return undefined;
             }
-
-            stopWatch.stop();
-            this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
             this.log.error(this.makeIndent(indentLevel+1) + " failed");
             throw err;
+        }
+        finally {
+            stopWatch.stop();
+            this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
     }
 
