@@ -46,49 +46,49 @@ If you already have Node.js and are familiar with npm, here is the quick guide t
 
 Install task-mule for your build script:
 
-	npm install --save-dev task-mule
+    npm install --save-dev task-mule
 
 Create your mule.js script:
 
-	npx task-mule init
+    npx task-mule init
 
 Create a task:
 
-	npx task-mule create-task my-first-task
+    npx task-mule create-task my-first-task
 
 Edit *tasks/my-first-task.js* so that it does what you want.
 
 Run the task:
 
-	npx task-mule my-first-task
+    npx task-mule my-first-task
    
 # Getting Started - the long version
 
 ## Installing Task-Mule
 
-First up, make sure you have Node.js installed:	[https://nodejs.org/en/](https://nodejs.org/en/) 
+First up, make sure you have Node.js installed:    [https://nodejs.org/en/](https://nodejs.org/en/) 
 
 Now open your terminal and change directory to your project. 
 
 Create your package.json if you don't yet have one:
 
-	npm init -y
+    npm init -y
 
 Then install Task-Mule:
 
-	npm install --save-dev task-mule
+    npm install --save-dev task-mule
 
 ## Create your first script
 
 Try running Task-Mule:
 
-	npx task-mule
+    npx task-mule
 
 You should now see an error message saying *mule.js not found*. mule.js is the entry point for a Task-Mule script, similar to *Gruntfile* (for Grunt) or *gulpfile.js* (for Gulp).
 
 Generate a default *mule.js* as follows:
 
-	npx task-mule init
+    npx task-mule init
 
 This creates a template *mule.js* that you can fill out. You don't actually have to put anything in this file, but you can put event handlers here if you need for:
 - build script initialisation;
@@ -100,13 +100,13 @@ This creates a template *mule.js* that you can fill out. You don't actually have
 
 Run task-mule now:
 
-	npx task-mule
+    npx task-mule
 
 You'll see an error message indicating that you don't have a *tasks* directory. Each Task-Mule *task* lives in its own JavaScript file under the *tasks* directory.
 
 Run the following command to create the *tasks* directory and your first task:
 
-	npx task-mule create-task my-first-task
+    npx task-mule create-task my-first-task
 
 This has created the *tasks* directory and a file called *my-first-task.js*. Open this file and you'll see a template for the basic [layout of a task](#task-layout).
 
@@ -134,7 +134,7 @@ The `invoke` function contains JavaScript that executes your task. Note that it'
 
 Now run your first task like this:
 
-	npx task-mule my-first-task
+    npx task-mule my-first-task
 
 You should see some output like this:
 
@@ -152,7 +152,7 @@ Note that the output tells you how long the task took to complete. This trivial 
 
 Let's create another trivial task to illustrate a child task:
 
-	npx task-mule create-task my-child-task
+    npx task-mule create-task my-child-task
 
 This generates the file *my-child-task.js* under the *tasks* directory. Add some logging to the invoke function so you know that the new task gets invoked:
 
@@ -178,7 +178,7 @@ module.exports = {
 
 Now run your first task again: 
 
-	npx task-mule my-first-task
+    npx task-mule my-first-task
 
 You'll see the both tasks are executed in the right order:
 
@@ -198,27 +198,27 @@ Using the `runs` field allows you to build up complex graphs of tasks.
 Each task can have as many children as you need, so instead of just this: 
 
 ```javascript
-	runs: [
-		"my-child-task",
-	],
+    runs: [
+        "my-child-task",
+    ],
 ```
 
 A complex build script will have many more tasks:
 
 ```javascript
-	runs: [
-		"child1-task",
-		"child2-task",
-		"child3-task",
-		// and so on, as many as you want
-	],
+    runs: [
+        "child1-task",
+        "child2-task",
+        "child3-task",
+        // and so on, as many as you want
+    ],
 ```
 
 ## Listing tasks
 
 You can list your hierarchy of tasks like this:
 
-	npx task-mule --tasks
+    npx task-mule --tasks
 
 The output shows you how your tasks are nested:
 
@@ -249,7 +249,7 @@ For convenience you should add an npm script for it in your package.json file as
 
 Now you can run your build process like this:
 
-	npm run build
+    npm run build
 
 That's a bit shorter and it's also easier to remember. 
 
@@ -286,27 +286,27 @@ Now we'll go back to the first task and add configuration for the child task.
 Instead of just having a simple list of child tasks like this:
 
 ```javascript
-	runs: [
-		"my-child-task",
-	],
+    runs: [
+        "my-child-task",
+    ],
 ```
 
 Now we'll change it to this to set the configuration for the child task:
 
 ```javascript
-runs: [
-	{
-		task: "my-child-task",
-		config: {
-			msg: "Some great message!",
-		},
-	},
-],
+    runs: [
+        {
+            task: "my-child-task",
+            config: {
+                msg: "Some great message!",
+            },
+        },
+    ],
 ```
 
 Now run your first task again:
 
-	npx task-mule my-first-task
+    npx task-mule my-first-task
 
 You should see that your configuration is passed through to the child task:
 
@@ -326,11 +326,11 @@ Task-Mule finished.
 Tasks can return results, for example the child task might look like this:
 
 ```javascript
-	invoke: async config => {
-		return {
-			msg: "Hello from the child task!",
-		};
-	},
+    invoke: async config => {
+        return {
+            msg: "Hello from the child task!",
+        };
+    },
 ```
 
 A parent task can retrieve the output from a child by running it explicitly using the `runTask` function:
@@ -357,13 +357,13 @@ Now we are now running the child task directly using `runTask` and can get the r
 Tasks are failed simply by throwing an exception, for example:
 
 ```javascript
-	invoke: async config => {
-		// ...
-		if (somethingBadHappens) {
-			throw new Error("Somethign went wrong.");
-		}
-		// ...
-	},
+    invoke: async config => {
+        // ...
+        if (somethingBadHappens) {
+            throw new Error("Somethign went wrong.");
+        }
+        // ...
+    },
 ```
 
 ## Invoking a system command
@@ -376,15 +376,15 @@ In this example we'll run the command `hg id --num` which determines the current
 const { runCmd } = require("task-mule");
 
 //...
-	invoke: async config => {
-		var cmd = 'hg';
-		var args = ['id', '--num'];
-		const cmdResult = await runCmd(cmd, args);
-		var versionNo = parseInt(cmdResult.stdOut.trim());
-		return {
-			version: versionNo, // Return result to parent script.
-		};
-	},
+    invoke: async config => {
+        var cmd = 'hg';
+        var args = ['id', '--num'];
+        const cmdResult = await runCmd(cmd, args);
+        var versionNo = parseInt(cmdResult.stdOut.trim());
+        return {
+            version: versionNo, // Return result to parent script.
+        };
+    },
 // ...
 ```
 
@@ -398,13 +398,13 @@ Can you use the Task-Mule's `validate` helper to validate your configuration:
 const { validate } = require("task-mule");
 
 module.exports = {
-	validate: async config => {
-		validate.config(config, 'aNecessaryField');
-	},
+    validate: async config => {
+        validate.config(config, 'aNecessaryField');
+    },
 
-	invoke: async config => {
-		// ... run the task ... 
-	},
+    invoke: async config => {
+        // ... run the task ... 
+    },
 };
 ```
 
@@ -416,65 +416,65 @@ The validate helper has other useful functions to check for the existance of fil
 
 You can create a new *mule.js* from the template by running the following commmand in the directory for your script:
 
-	npx task-mule init
+    npx task-mule init
 
 Technically it's not necessary to modify *mule.js* in any way to create and run tasks. You can just simply create and edits *task* files in the *tasks* directory and then run those tasks using the following command:
 
-	npx task-mule <some-task-name>
+    npx task-mule <some-task-name>
 
 However if you want to make custom initialisation, event handling or more, you'll need to edit *mule.js*.
 
 Creating a new *mule.js* will give you the following template, which has stubs for you to fill out and comments for explanation:
 
-```javascript	
+```javascript    
 module.exports = {
-	//
-	// Describes options to the system.
-	// Fill this out to provide custom help when 'task-mule --help' 
-	// is executed on the command line.
-	//
-	options: [
-		['--some-option', 'description of the option'],
-		['--another-option', 'description of the option'],
-	],
+    //
+    // Describes options to the system.
+    // Fill this out to provide custom help when 'task-mule --help' 
+    // is executed on the command line.
+    //
+    options: [
+        ['--some-option', 'description of the option'],
+        ['--another-option', 'description of the option'],
+    ],
 
-	//
-	// Examples of use.
-	// Fill this out to provide custom help when 'task-mule --help' 
-	// is executed on the command line.
-	//
-	examples: [
-		['Example 1', 'An example command line'],
-		['Example 2', 'An example command line'],
-	],
+    //
+    // Examples of use.
+    // Fill this out to provide custom help when 'task-mule --help' 
+    // is executed on the command line.
+    //
+    examples: [
+        ['Example 1', 'An example command line'],
+        ['Example 2', 'An example command line'],
+    ],
 
-	init: async config => {
-		// ... custom initialisation code here ... 
-	},
+    init: async config => {
+        // ... custom initialisation code here ... 
+    },
 
-	unhandledException: err => {
-		// ... callback for unhandled exceptions thrown by your tasks ...
-	},
+    unhandledException: err => {
+        // ... callback for unhandled exceptions thrown by your tasks ...
+    },
 
-	taskStarted: async taskName => {
-		// ... callback for when a task has started (not called for dependencies) ...
-	},
+    taskStarted: async taskName => {
+        // ... callback for when a task has started (not called for dependencies) ...
+    },
 
-	taskSuccess: async taskName => {
-		// ... callback for when a task has succeeed (not called for dependencies) ...
-	},
+    taskSuccess: async taskName => {
+        // ... callback for when a task has succeeed (not called for dependencies) ...
+    },
 
-	taskFailure: async (taskName, err) => {
-		// ... callback for when a task has failed (not called for dependencies) ...
-	},
+    taskFailure: async (taskName, err) => {
+        // ... callback for when a task has failed (not called for dependencies) ...
+    },
 
-	taskDone: async taskName => {
-		// ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
-	},
+    taskDone: async taskName => {
+        // ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
+    },
 
-	done: async config => {
-		// ... callback for when all tasks have been completed, either failed or succeeded ...
-	},
+    done: async config => {
+        // ... callback for when all tasks have been completed, either failed or succeeded ...
+    },
 };
 ```
 
@@ -482,25 +482,25 @@ module.exports = {
 
 A Task-Mule automation script is structured in the file system as follows:
 
-	my-script/
-		node-modules/
-			task-mule/					-> Locally installed Task-Mule 
-			... other npm packages ...	   
-		mule.js							-> Task mule entry point.
-		tasks/							-> Directory that contains the tasks.
-			task1.js					-> Each task lives in it's own file 
-			task2.js					   and is named after that file.
-			subdir/
-				nested-task.js 			-> Tasks can even be nested under sub-directories
-										   to help group and organise your tasks.
-		some-other-file.js				-> Include any other JavaScript files and require
-										   them into your script.
+    my-script/
+        node-modules/
+            task-mule/                    -> Locally installed Task-Mule 
+            ... other npm packages ...       
+        mule.js                            -> Task mule entry point.
+        tasks/                            -> Directory that contains the tasks.
+            task1.js                    -> Each task lives in it's own file 
+            task2.js                       and is named after that file.
+            subdir/
+                nested-task.js             -> Tasks can even be nested under sub-directories
+                                           to help group and organise your tasks.
+        some-other-file.js                -> Include any other JavaScript files and require
+                                           them into your script.
 
 ## Task layout
 
 Run the following command to create a new task with the default layout:
 
-	task-mule create-task <new-task-name>
+    task-mule create-task <new-task-name>
 
 This creates a new task file in the tasks directory with the following *new-task-name.js*.
 
@@ -552,38 +552,38 @@ There are several ways to specify the child of a task.
 The simplest an array of task names:
 
 ```javascript
-	runs: [
-		"dependency-task-1",
-		"dependency-task-2",
-		"and-so-on",
-	],
+    runs: [
+        "dependency-task-1",
+        "dependency-task-2",
+        "and-so-on",
+    ],
 ```
 
 You can pass configuration to child task using the object format:
 
 ```javascript
-	runs: [
-		"dependency-task-1",
-		{
-			task: "dependency-task-2",
-			config: {
-				// ... parameters to this task ...
-			},
-		},
-		"and-so-on",
-	],
+    runs: [
+        "dependency-task-1",
+        {
+            task: "dependency-task-2",
+            config: {
+                // ... parameters to this task ...
+            },
+        },
+        "and-so-on",
+    ],
 ```
 
 You can also use a function to dynamically generate the list of child tasks:
 
 ```javascript
-	runs: async config => {
-		return [
-			"dependency-task-1",
-			"dependency-task-2",
-			"and-so-on",
-		];
-	},
+    runs: async config => {
+        return [
+            "dependency-task-1",
+            "dependency-task-2",
+            "and-so-on",
+        ];
+    },
 ```
 
 This gives you advanced possibilities to conditionally configure the child tasks to be invoked.
@@ -591,21 +591,21 @@ This gives you advanced possibilities to conditionally configure the child tasks
 For example, we conditionally enable a *clean build* something like this:
 
 ```javascript
-	runs: async config => {
-		var tasks = [];
-		if (config.clean) {
-			// Only delete previous buid output when the 'clean' option is used. 
-			task.push("delete-the-build-output");
-		}
+    runs: async config => {
+        var tasks = [];
+        if (config.clean) {
+            // Only delete previous buid output when the 'clean' option is used. 
+            task.push("delete-the-build-output");
+        }
 
-		tasks.push("build-the-code");
-		return tasks;
-	},
+        tasks.push("build-the-code");
+        return tasks;
+    },
 ```
 
 This kind of thing allows you to conditionally modify dependencies via the command line, the *clean* option for example is used like this:
 
-	task-mule do-the-build --clean
+    task-mule do-the-build --clean
 
 ## Task execution order
 
@@ -615,14 +615,14 @@ For example, consider *task-A*:
 
 ```javascript
 module.exports = {
-	runs: [
-		"dependency1",
-		"dependency2",
-	], 
+    runs: [
+        "dependency1",
+        "dependency2",
+    ], 
 
-	invoke: async config => {
-		// ... do the action of the task ...
-	},
+    invoke: async config => {
+        // ... do the action of the task ...
+    },
 };
 ```
 
@@ -674,17 +674,17 @@ Tasks are validated via the `validate` function.
 
 ```javascript
 module.exports = {
-	validate: async config => {
-		// ... validate input to the task ...
+    validate: async config => {
+        // ... validate input to the task ...
 
-		//
-		// To fail the task: throw an exception or return a rejected promise.
-		//
-	},
+        //
+        // To fail the task: throw an exception or return a rejected promise.
+        //
+    },
 
-	invoke: async config => {
-		// ... do the action of the task ...
-	},
+    invoke: async config => {
+        // ... do the action of the task ...
+    },
 };
 ```
 
