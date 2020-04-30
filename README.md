@@ -16,46 +16,6 @@ Need to get started, jump straight to [the quick start](#getting-started---ultra
 
 Task-Mule is the build tool that builds [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
 
-# Contents
-
-TODO: regen TOC
-
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-
-- [Why Task-Mule?](#why-task-mule)
-- [Features](#features)
-- [Getting started - ultra quick](#getting-started---ultra-quick)
-- [Getting Started - the long version](#getting-started---the-long-version)
-  - [Installing Task-Mule CLI](#installing-task-mule-cli)
-  - [Create your first script](#create-your-first-script)
-  - [Creating your first task](#creating-your-first-task)
-  - [Running your task](#running-your-task)
-  - [Installing npm dependencies](#installing-npm-dependencies)
-  - [Configuration options](#configuration-options)
-  - [Failing a task](#failing-a-task)
-  - [Invoking a command](#invoking-a-command)
-  - [Specifying task dependencies](#specifying-task-dependencies)
-  - [Logging and validation](#logging-and-validation)
-  - [Validation](#validation)
-- [Advanced stuff](#advanced-stuff)
-  - [Why promises?](#why-promises)
-  - [Return values](#return-values)
-  - [Converting callbacks to promises](#converting-callbacks-to-promises)
-  - [*mule.js* layout](#mulejs-layout)
-  - [Task-Mule file system structure](#task-mule-file-system-structure)
-  - [Task layout](#task-layout)
-  - [Task dependencies](#task-dependencies)
-  - [Task execution order](#task-execution-order)
-  - [Task failure](#task-failure)
-  - [Task validation](#task-validation)
-  - [Running dependencies manually](#running-dependencies-manually)
-  - [More on running commands](#more-on-running-commands)
-  - [Advanced configuration](#advanced-configuration)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Why Task-Mule?
 
 So why Task-Mule? Task-Mule is a bit different. It is a task runner of course, but is not just for build scripts. It was designed for large automation jobs with complex dependencies between tasks.
