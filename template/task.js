@@ -6,13 +6,13 @@ module.exports = {
     description: "<description of your task>",
     
     // Tasks that this one depends on (these tasks will run before this one).
-    dependsOn: [
+    runs: [
         // ... list of dependencies ...
     ], 
 
     // Can also use a function for depends on like this ...
     /*
-    dependsOn: async config => {
+    runs: async config => {
         return [
             /// ... list of dependencies ...                
         ];

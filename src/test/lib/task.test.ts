@@ -44,7 +44,7 @@ describe('Task', () => {
 	it("resolving single dependency that doesnt exists results in no resolved dependencies", async () => {
 
 		init({
-			dependsOn: [ "non-existing-task" ],
+			runs: [ "non-existing-task" ],
 		});
 
 		const dependencies = await testObject.resolveDependencies({});
@@ -59,7 +59,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: [ "another-task" ],
+				runs: [ "another-task" ],
 			}, 
 			{
 				"another-task": mockAnotherTask,
@@ -80,7 +80,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: [ 
+				runs: [ 
 					{
 						task: "another-task",
 					}
@@ -108,7 +108,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: [ 
+				runs: [ 
 					{
 						task: "another-task",
 						config: dependencyConfig,
@@ -136,7 +136,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: [ "one-task", "two-task" ],
+				runs: [ "one-task", "two-task" ],
 			}, 
 			{
 				"one-task": mockTask1,
@@ -157,7 +157,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: async () => [ "another-task" ],
+				runs: async () => [ "another-task" ],
 			}, 
 			{
 				"another-task": mockAnotherTask,
@@ -208,7 +208,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: async () => [ "another-task" ],
+				runs: async () => [ "another-task" ],
 			}, 
 			{
 				"another-task": mockAnotherTask,
@@ -276,7 +276,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: async () => [ "another-task" ],
+				runs: async () => [ "another-task" ],
 			}, 
 			{
 				"another-task": mockAnotherTask,
@@ -327,7 +327,7 @@ describe('Task', () => {
 
 		init(
 			{
-				dependsOn: [ "one-task", "two-task" ],
+				runs: [ "one-task", "two-task" ],
 			}, 
 			{
 				"one-task": mockTask1,

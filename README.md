@@ -1,10 +1,24 @@
-# Task-Mule [![npm](https://img.shields.io/npm/v/task-mule.svg)](https://www.npmjs.com/package/task-mule)
+# Task-Mule
 
-Yet another task runner for [NodeJS](https://nodejs.org/en/) .... why use [Grunt](http://gruntjs.com/) or [Gulp](http://gulpjs.com/) when you can write your own?
+A task runner for complex build processes using [Node.js](https://nodejs.org/en/).
 
-We have used both Grunt and Gulp. Gulp is a step up from Grunt. Actually Gulp is pretty good and we still use it for building web applications.
+Why another task runner when we already have a gazillion? Surely one of [Grunt](http://gruntjs.com/), [Gulp](http://gulpjs.com/), [Webpack](https://webpack.js.org/) are good enough?
 
-You must be proficient at JavaScript to make the most of this tool. 
+Sure, they are great for standard and fairly simple web pages. That's where you should start.
+
+Turn to Task-Mule when you have a more complicated build process. Like for a game, VR application or cross-platform desktop application.
+
+Task-Mule is the task runner for build processes with complex dependency chains. Got a 100 tasks that depend on each in wierd and wonderful ways? 
+
+Task-Mule allows you to build ["make files"](https://en.wikipedia.org/wiki/Makefile) in JavaScript. 
+
+Need to get started, jump straight to [the quick start](#getting-started---ultra-quick).
+
+Task-Mule is the build tool that builds [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
+
+# Contents
+
+TODO: regen TOC
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -12,7 +26,6 @@ You must be proficient at JavaScript to make the most of this tool.
 
 - [Why Task-Mule?](#why-task-mule)
 - [Features](#features)
-- [Use cases](#use-cases)
 - [Getting started - ultra quick](#getting-started---ultra-quick)
 - [Getting Started - the long version](#getting-started---the-long-version)
   - [Installing Task-Mule CLI](#installing-task-mule-cli)
@@ -43,317 +56,367 @@ You must be proficient at JavaScript to make the most of this tool.
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Why Task-Mule?
+# Why Task-Mule?
 
 So why Task-Mule? Task-Mule is a bit different. It is a task runner of course, but is not just for build scripts. It was designed for large automation jobs with complex dependencies between tasks.
 
 Task-Mule was built for piece-meal testing of individual tasks. Each task can be tested from the command line (or test runner) with ease, even if those tasks will only ever be a dependency for other tasks in production.
 
-Task-Mule tasks can also easily be tested via tools like Mocha. More on that later.
+Task-Mule tasks can also easily be tested via testing tools like Mocha. More on that later.
 
 Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you need via npm and then wire them into your script through tasks written in JavaScript.
 
-## Features
+# Features
 
 - Both procedural and config driven scripts. Create your tasks in code, provide options via configuration.
 - Run a task and all its dependencies.
-- Install dependencies via npm. 
-- Basic logging, can also add your own.
-- Configuration management (via [Confucious](https://github.com/real-serious-games/confucious)).
+- Define tasks in JavaScript and use whatever npm modules you like.
+- Color logging.
+- Times the execution of tasks.
 - Built-in support for running command line tools and retreiving their output.
-- Promises are used for async tasks.
+- Uses async/await to support asynchronous tasks.
+- The validation pass happens before any tasks are invoked (you'd like to know if you build script is badly configured as early as possible).
 
-## Use cases
+# Getting started - ultra quick
 
-We use Task-Mule for:
+If you already have NodeJS and are familiar with npm, here is the quick guide to getting started. If you need more explanation please skip to the following section.
 
-- Our Unity3d build script;
-- Create new Unity3d projects from a template project;
-- Server deployment (see [basic example](https://github.com/ashleydavis/NodeJS-Skeleton) on github);
+Install task-mule for each automation script:
 
-We'll have more examples online in the future.
+	npm install --save-dev task-mule
 
-## Getting started - ultra quick
+Create your mule.js script:
 
-If you already have NodeJS and are familiar with npm, here is the expigated guide to getting started. If you need more explanation please skip to the following section.
-
-Install task-mule-cli, only need to do this once:
-
-	npm install -g task-mule-cli
-
-Install task-mule locally for each automation script:
-
-	npm install --save task-mule
-
-Create your script:
-
-	task-mule init
+	npx task-mule init
 
 Create a task:
 
-	task-mule create-task my-first-task
+	npx task-mule create-task my-first-task
 
 Edit *tasks/my-first-task.js* so that it does what you want.
 
 Run the task:
 
-	task-mule my-first-task
+	npx task-mule my-first-task
    
-## Getting Started - the long version
+# Getting Started - the long version
 
-### Installing Task-Mule CLI
+## Installing Task-Mule
 
 First up, make sure you have Node.js installed:	[https://nodejs.org/en/](https://nodejs.org/en/) 
 
-Now open a command line and npm install the Task-Mule CLI:
+Now open your terminal and change directory to your automation project. 
 
-	npm install -g task-mule-cli
+Create your package.json if you don't yet have one:
 
-*task-mule-cli* is a very simple global command for Task-Mule that delegates to the locally installed version of Task-Mule (this allows you to have different versions of Task-Mule installed for different scripts).
+	npm init -y
 
-### Create your first script
+Then install Task-Mule:
 
-Now create a directory for your new script (assume we are making a build script) and change into it:
+	npm install --save-dev task-mule
 
-	md my-build-script
-	cd my-build-script
+## Create your first script
 
-Initialise npm and create *package.json* to track the packages for your build script:
+Try running Task-Mule:
 
-	npm init
-
-Now trying running task-mule:
-
-	task-mule
-
-You should see an error message saying that you must have a local version of Task-mule installed.
-
-Now go ahead and install the local version of Task-Mule:
-
-	npm install --save task-mule
-
-You can look at the contents of *package.json* to check that it has saved the Task-Mule dependency correctly:
-
-	cat package.json
-
-The output should show the local version of Task-Mule that is installed, something like:
-
-	"dependencies": {           
-	  "task-mule": "^1.4.16"    
-	},                           
-
-Now try running task-mule again: 
-
-	task-mule
+	npx task-mule
 
 You should now see an error message saying *'mule.js' not found*. mule.js is the entry point for a Task-Mule script, similar to *Gruntfile* (for Grunt) or *gulpfile.js* (for Gulp).
 
 Generate a default *mule.js* as follows:
 
-	task-mule init
+	npx task-mule init
 
-This creates a template *mule.js* that you can fill out. You don't actually have to put anything in this file, but you may want to have custom initialisation or clean up code, or override the logging system or provide custom handling for task failure. 
+This creates a template *mule.js* that you can fill out. You don't actually have to put anything in this file, but you can put event handlers here if you need for:
+- initialisation;
+- completion; 
+- callbacks for particular tasks; and
+- handling unhandled errors.
 
-### Creating your first task
+## Creating your first task
 
 Run task-mule now:
 
-	task-mule
+	npx task-mule
 
 You'll see an error message that indicates you have no *tasks* directory. Each Task-Mule *task* lives in its own file under the *tasks* directory.
 
 Run the following command to create the *tasks* directory and your first task:
 
-	task-mule create-task my-first-task
+	npx task-mule create-task my-first-task
 
 This has created the *tasks* directory and created the file *my-first-task.js*. Open this file and you'll see a template for the basic [layout of a task](#task-layout).
 
-Let's add a simple log message so we can see it running. Find the invoke function and in the function body add:
+Let's add a simple log message to the invoke function so we can see it running. Find the invoke function and add some logging to like this:
 
-	log.info("Hello computer!");
+```javascript
+log.info("Hello Task-Mule!");
+```
 
-### Running your task
+The entire first task (with superflous declarations and comments stripped) looks like this:
 
-Again from the command line, making sure you are in the correct directory for your automation script, run the task you created in the previous section:
+```javascript
+module.exports = {
+    description: "A first task mule task!",
+    
+    invoke: async config => {
+        console.log("Hello Task-Mule!");      
+    },
+};
+```
 
-	task-mule my-first-task
+## Running your task
 
-That's it. You should see the output *Hello computer!*.
+Now run your first task like this:
 
-### Installing npm dependencies
+	npx task-mule my-first-task
 
-Let's get this doing something useful. Say you want to run a command on a remote machine via SSH. This kind of thing is useful when you use Task-Mule for server deployment.
+You should see some output like this:
 
-Let's install *[ssh-promise](https://www.npmjs.com/package/ssh-promise)* from npm.
+```
+> npx task-mule my-first-task
+my-first-task {}
+Hello Task-Mule!
+├── completed : 0.00 seconds
+Task-Mule finished.
+```
 
-	npm install --save ssh-promise 
- 
-Now we can add SSH commands to our task:
+## Adding a child task
 
-	module.exports = function (log, validate) {
-	    
-		var SshClient = require('ssh-promise');
+Let's create another trivial task to illustrate how to add a child task.
 
-	    return {
-	        
-	        // ... other task fields ...
-	        
-	        invoke: function (config) {
-	            
-				var sshConfig = {
-					host: ...,
-					username: ...,
-					password: ...,
-				};
+Create the next task like this:
 
-				var ssh = new SshClient(sshConfig);
-				return ssh.exec('... some script to run on remote machine ...');
-	        },
-	    };
-	};
+	npx task-mule create-task my-child-task
 
-Note that we simply return the promise for the invoke function. Task-Mule uses promises for async tasks. When Task-Mule has multiple tasks to invoke it uses promises to chain them one after the other.
+This generates the file *my-child-task.js* under the *tasks* directory. Add some logging to the invoke function so you know that the new task gets invoked:
 
-### Configuration options
+```javascript
+console.log("Hello from child task!");
+```
 
-The previous example can be improved by wiring in external configuration.
+Now let's add this as a child to the first task using the `runs` field as follows:
 
-Let's see what that looks like:
+```javascript
+module.exports = {
+    description: "My first task!",
 
-	module.exports = function (log, validate) {
+    runs: [
+        "my-child-task",
+    ],
+    
+    invoke: async config => {
+        console.log("Hello Task-Mule!");      
+    },
+};
+```
 
-		var SshClient = require('ssh-promise');
+Now run your first task again: 
 
-		return {
+	npx task-mule my-first-task
 
-			// ... other task fields ...
+You'll see the both tasks are executed in the right order:
 
-			invoke: function (config) {
+```
+> npx task-mule my-first-task
+my-first-task {}
+├── my-child-task {}
+Hello from child task!
+│   ├── completed : 0.00 seconds
+Hello Task-Mule!
+├── completed : 0.01 seconds
+Task-Mule finished.
+```
 
-				var sshConfig = {
-					host: config.get('host'),
-					username: config.get('username'),
-					password: config.get('password'),
-				};
+Using the `runs` field allows you to build up complex graph of tasks.
 
-				var ssh = new SshClient(sshConfig);
-				return ssh.exec('... some script to run on remote machine ...');
-			},
-		};
-	};
+Each task can have as many children as you need, so instead of just this: 
 
-In this example we are calling `config.get` to pull some external configuration into our task. 
+```javascript
+    runs: [
+        "child-task",
+    ],
+```
 
-How do we specify this configuration? We have multiple options. 
+A complex build script will look more like this:
 
-One is the command line:
+```javascript
+    runs: [
+		"child1-task",
+		"child2-task",
+		"child3-task",
+		// and so on, as many as you want
+    ],
+```
 
-	task-mule my-first-task --host=somehost --username=myusername --password=thepassword
+## Configuring an npm script
 
-This makes it easy to test tasks from the command line.
+You can run any task by name. Typically though you'll have some root or main task  call that encapsulates your entire build process. You might call it `build.js` or something similar.
 
-More permanently though we can store configuration in *config.json* or set defaults in *mule.js*. We can also specific configuration through *environment variables*. More on configuration in the advanced section...
+For convenience you should add an npm script for it in your package.json file as follows:
 
-### Failing a task
+```json
+{
+  "name": "task-mule-test",
+  "scripts": {
+    "build": "npx task-mule build"
+  },
+  "devDependencies": {
+    "task-mule": "^2.0.0"
+  }
+}
+```
 
-Tasks are failed in one of two ways. Either return a *rejected* promise or throw an exception (which ultimately results in a rejected promise).
+Now you can run your build process like this:
 
-First example:
+	npm run build
 
-	module.exports = function (log, validate) {
+That's a bit shorter and it's also easier to remember. 
 
-	    return {
-	        
-	        invoke: function (config) {
+It's easier to remember because you can always check package.json to remind yourself!
 
-				var someRejectedPromise = ... promise is rejected for some reason ...
+## Task configuration
 
-				return someRejectedPromise;
-	        },
-	    };
-	};
- 
-Second example:
+Any task can accept configuration options. As an example let's make our child task from earlier take a message as input and then print it.
 
-	module.exports = function (log, validate) {
+Configuration is supplied by a plain old JavaScript object, like this: 
 
-	    return {
-	        
-	        invoke: function (config) {
+```javascript
+const { runCmd, runTask, validate, log } = require("task-mule");
 
-				throw new Error("This task will always fail");
-	        },
-	    };
-	};
+module.exports = {
+    description: "A child task",
+    
+    validate: async config => {
+        if (!config.msg) {
+            throw new Error("Child task requires a 'msg' config field.");
+        }
+    },
 
-### Invoking a command
+    invoke: async config => {
+        console.log(config.msg);
+    },
+};
+```
 
-Task-Mule includes a special global helper function `runCmd` to help you run system commands and marshal the results back into the build script. 
+The `validate` function is called by Task-Mule and it's here that you can check that the right configuration has been provided.
+
+In the `invoke` function you can access the `config` object to get your configuration, such as the `msg` field demonstrated here. You can have whatever fields and values you need in the `config` object, you just have to make sure you pass in the right options from the parent task.
+
+Now we'll go back to the first task and add configuration to the child task. Instead of just having a simple list of child like this:
+
+```javascript
+	runs: [
+		"child-task",
+	],
+```
+
+We'll now do it like this so we can input configuration to the child task:
+
+```javascript
+    runs: [
+        {
+            task: "child-task",
+            config: {
+                msg: "Some great message!",
+            },
+        },
+    ],
+```
+
+Now run your first task again:
+
+	npx task-mule my-first-task
+
+You should see that your configuration is passed through to the child task:
+
+```
+> npx task-mule my-first-task
+my-first-task {}
+├── child-task {msg = "Some great message!"}
+Some great message!
+│   ├── completed : 0.00 seconds
+Hello Task-Mule!
+├── completed : 0.01 seconds
+Task-Mule finished.
+```
+
+## Task output
+
+TODO: task should return an object.
+Show how parent task can make use of the output.
+
+## Failing a task
+
+Tasks are failed simply by throwing an exception, for example:
+
+```javascript
+    invoke: async config => {
+		// ...
+		if (somethingBadHappens) {
+			throw new Error("Somethign went wrong.");
+		}
+		// ...
+    },
+```
+
+## Invoking a system command
+
+Task-Mule includes a special helper function `runCmd` to help you run system commands and marshal the results back into the build script. 
 
 In this example we'll run the command `hg id --num` which determines the current revision number of the [*Mercurial*](https://en.wikipedia.org/wiki/Mercurial) [repository](https://en.wikipedia.org/wiki/Repository_(version_control)) we happen to be. This kind of thing is useful in build scripts because you often want to *stamp* the number of the current code revision into the build somehow. 
 
-	module.exports = function (log, validate) {
+TODO: change this example to GIT.
 
-		return {
+```javascript
+const { runCmd } = require("task-mule");
 
-			invoke: function (config) {
+//...
+		invoke: async config => {
+			var cmd = 'hg';
+			var args = ['id', '--num'];
+			const cmdResult = await runCmd(cmd, args);
+			var versionNo = parseInt(cmdResult.stdOut.trim());
+			return {
+				version: versionNo,
+			};
+		},
+// ...
+```
 
-				var cmd = 'hg';
-				var args = ['id', '--num'];
+This example parses the output from the `hg` command and returns it for use by dependent tasks.
 
-				return runCmd(cmd, args)
-					.then(function (cmdResult) {
-						var versionNo = parseInt(cmdResult.stdOut.trim());
-						config.set('version', versionNo); 
-					});
-			},
-		};
-	};
+## Retreiving a generated output from the child task
 
-This example parses the output from the `hg` command and sets it into the configuration for use by dependent tasks. 	
+Ok... so a single task won't get us very far. Let's build on the previous example and save the revison number to a file so we can use it in our build process. Assume the task in the previous example is in a file under the *tasks* directory called *determine-revision-number.js*.
 
-More on running commands in the advanced section...
+We can make a dependent task (let's call it *gen-build-info.js*) as follows:
 
-### Specifying task dependencies
+TODO: implement returns from child tasks.
 
-Ok... so a single task won't get us very far. Let's build on the previous example and make use of the revison number we now have in our configuration. Assume the task in the previous example is in a file under the *tasks* directory called *determine-revision-number.js*.
+```javascript
+const fs = require('fs');
 
-We can make a dependent task (let's called it *gen-build-info.js*) as follows:
+module.exports = {
 
-	module.exports = function (log, validate) {
+	dependsOns: [
+		"determine-revision-number",
+	],
 
-		var fs = require('fs');
+	invoke: async (config, deps) => {
+		const version = deps["determine-revision-number"].version;
+		await fs.writeFile("build-info.json", JSON.stringify({ version }));
+	},
+};
+```
 
-		return {
+This example task is synthesizing a JSON file with a variable that is set to the current revision number of the repository. We do this kind of thing before the [code build](https://en.wikipedia.org/wiki/Software_build) step to *bake* the version number into our application so that we can always identify which revision the build was produced from. 
 
-			dependsOns: [
-				"determine-revision-number",	
-			],
-
-			invoke: function (config) {
-
-				var versionNo = config.get('version');
-
-				var fileToOutput = 
-					"public static class BuildInfo\r\n" +
-					"{\r\n" +
-					"    public static int VersionNo = " + versionNo + "\r\n" +
-					"}";
-
-				fs.writeFileSync("BuildInfo.cs", fileToOutput); 
-			},
-		};
-	};
-
-This example task is synthesizing a code file with a variable that is set to the current revision number of the repository. We do this kind of thing before the [code build](https://en.wikipedia.org/wiki/Software_build) step to *bake* the version number into our executable so that we can always indentify which code revision the build came from. 
-
-Note that in this example we aren't returning a promise. Because the task is synchronous rather than asynchronous (due to our choice of using `readFileSync`) we don't need to return a promise. Task-Mule will just assume that this task was synchronous and that the operation has completed immediately. 
-
-Note that a task is automatically failed when it's downstream dependencies fail. This means that if *determine-revision-number* fails, it's dependent task *gen-build-info* will also fail.   
-
-For more on task return values, order of execution and task failure, please see the advanced section.
+Tasks are automatically failed when their child tasks fail. This means that if *determine-revision-number* fails, then *gen-build-info* will also fail.   
 
 ### Logging and validation
+
+TODO: got here
 
 Every task is passed the default basic logger as a parameter:
 
@@ -655,7 +718,7 @@ Here is the default task layout for your enjoyment:
 			description: "<description of your task>",
 
 			// Tasks that this one depends on (these tasks will run before this one).
-			dependsOn: [
+			runs: [
 				// ... list of dependencies ...
 			], 
 
@@ -693,7 +756,7 @@ There are several ways to specify the dependencies for a task.
 
 The simplest one, that we have already seen, is just an array of task names:
 
-	dependsOn: [
+	runs: [
 		"dependency-task-1",
 		"dependency-task-2",
 		"and-so-on",
@@ -701,7 +764,7 @@ The simplest one, that we have already seen, is just an array of task names:
 
 You can also use a function to dynamically generate the dependency list:
 
-	dependsOn: function (config) {
+	runs: function (config) {
 		return [
 			"dependency-task-1",
 			"dependency-task-2",
@@ -711,7 +774,7 @@ You can also use a function to dynamically generate the dependency list:
 
 Or:
 
-	dependsOn: function (config) {
+	runs: function (config) {
 		var deps = [];
 		deps.push("dependency-task-1");
 		deps.push("dependency-task-2");
@@ -723,7 +786,7 @@ This can be used in many interesting ways, for example conditionally building a 
 
 For example, we conditionally enable a *clean build* something like this:
 
-	dependsOn: function (config) {
+	runs: function (config) {
 		var isCleanBuild = config.get('clean');
 		
 		var deps = [];
@@ -740,9 +803,9 @@ This kind of thing allows you to conditionally modify dependencies via the comma
 
 	task-mule do-the-build --clean
 
-The `dependsOn` function, like all Task-Mule callbacks, can return a promise when you need to run an asynchronous operation. The promise should be *resolved* to a list of task names. 
+The `runs` function, like all Task-Mule callbacks, can return a promise when you need to run an asynchronous operation. The promise should be *resolved* to a list of task names. 
 
-	dependsOn: function (config) {
+	runs: function (config) {
 		
 		var promise = ... some async operation ...
 
@@ -753,7 +816,7 @@ As a contrived example, let's say you want to load your dependencies from a Mong
 
 	var db = ... initalise a promised-mongo db ....
 
-	dependsOn: function (config) {
+	runs: function (config) {
 
 		var someDbQuery = ...		
 		return db.myCollection.find(someDbQuery).toArray()
@@ -766,11 +829,11 @@ As a contrived example, let's say you want to load your dependencies from a Mong
 	 
 Crazy yes. Why would you want to load your dependencies from a database? I have no idea it's your automation script. Maybe I'll include a real example one day.
 
-When the `dependsOn` function throws an exception or returns a `rejected` promise the task is failed. 
+When the `runs` function throws an exception or returns a `rejected` promise the task is failed. 
 
 ### Task execution order
 
-When a task is requested to be executed, either from the command line or as a dependency of some other task, it's dependencies will run first in the order specified by the task's `dependsOn` function.
+When a task is requested to be executed, either from the command line or as a dependency of some other task, it's dependencies will run first in the order specified by the task's `runs` function.
 
 For example, consider *task-A*:
 
@@ -778,7 +841,7 @@ For example, consider *task-A*:
 
 		return {
 
-			dependsOn: [
+			runs: [
 				"dependency1",
 				"dependency2",
 			], 
@@ -869,7 +932,7 @@ The task is passed the *validate* parameter, this has some convenient helper fun
 
 ### Running dependencies manually
 
-Dependencies are normally specified via the *dependsOn* field of the task. You can also invoke dependencies manually. You might want to do this to have more control. 
+Dependencies are normally specified via the *runs* field of the task. You can also invoke dependencies manually. You might want to do this to have more control. 
 
 To make use of this use the `taskRunner` that is passed to the task module:
 

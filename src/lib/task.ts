@@ -16,7 +16,7 @@ export interface ITaskModule {
     //
     // Defines the other tasks that this one depends on.
     //
-    dependsOn?: (IDependency|string)[] | DependsOnFn;
+    runs?: (IDependency|string)[] | DependsOnFn;
 
     //
     // Validate the task.
@@ -162,17 +162,17 @@ export class Task implements ITask {
             return [];
         }
 
-        if (!this.taskModule.dependsOn) {
+        if (!this.taskModule.runs) {
             return [];
         }
         
         let dependencies: (string|IDependency)[];
         
-        if (Sugar.Object.isArray(this.taskModule.dependsOn)) {
-            dependencies = this.taskModule.dependsOn as (string|IDependency)[];
+        if (Sugar.Object.isArray(this.taskModule.runs)) {
+            dependencies = this.taskModule.runs as (string|IDependency)[];
         }
         else {
-            dependencies = await (this.taskModule.dependsOn as DependsOnFn)(config);
+            dependencies = await (this.taskModule.runs as DependsOnFn)(config);
         }
 
         assert.isArray(dependencies, `Expected dependencies of task ${this.taskName} to be an array of strings of dependency definition objects.`);

@@ -6,7 +6,7 @@ module.exports = function (log) {
         
         description: "test1",
         
-        dependsOn: [], 
+        runs: [], 
 
         validate: async config => {
             console.log('Validate test1');

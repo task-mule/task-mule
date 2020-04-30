@@ -6,7 +6,7 @@ module.exports = function (log) {
         
         description: "test3",
         
-        dependsOn: [
+        runs: [
             "test1",
             "test2",
         ], 
