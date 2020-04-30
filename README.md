@@ -14,7 +14,7 @@ Task-Mule allows you to build ["make files"](https://en.wikipedia.org/wiki/Makef
 
 Need to get started, jump straight to [the quick start](#getting-started---ultra-quick).
 
-Task-Mule is the build tool that builds [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
+Task-Mule is the build tool that powers [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
 
 # Why Task-Mule?
 
@@ -28,8 +28,8 @@ Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you 
 
 # Features
 
+- Create a build script or automation script in JavaScript.
 - Define tasks in JavaScript and use whatever npm modules you like.
-- Both procedural and config driven scripts. Create your tasks in code, provide options via configuration.
 - Create hierachies of tasks.
 - Run a task and all its children.
 - Color logging.
@@ -37,12 +37,14 @@ Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you 
 - Built-in support for running command line tools and retreiving their output.
 - Uses async/await to support asynchronous tasks.
 - The validation pass happens before any tasks are invoked (you'd like to know if you build script is badly configured as early as possible).
+- Child tasks can be configured by their parent task.
+- Child tasks can return output values to their parent task.
 
 # Getting started - ultra quick
 
 If you already have Node.js and are familiar with npm, here is the quick guide to getting started. If you need more explanation please skip to the following section.
 
-Install task-mule for each automation script:
+Install task-mule for your build script:
 
 	npm install --save-dev task-mule
 
@@ -108,7 +110,7 @@ Run the following command to create the *tasks* directory and your first task:
 
 This has created the *tasks* directory and a file called *my-first-task.js*. Open this file and you'll see a template for the basic [layout of a task](#task-layout).
 
-Let's add a simple log message to the invoke function so we can see it running. Find the invoke function and add some logging to like this:
+Let's add a simple log message to the invoke function so we can see it running. Find the invoke function and add some logging like this:
 
 ```javascript
 log.info("Hello Task-Mule!");
@@ -126,7 +128,7 @@ module.exports = {
 };
 ```
 
-The `invoke` function contains JavaScript that executes your task. Note that it's an `async` function. You have async code here, like downloading files or hitting REST APIs and database.
+The `invoke` function contains JavaScript that executes your task. Note that it's an `async` function. You can run async code here, like downloading files or hitting REST APIs or a database.
 
 ## Running your task
 
@@ -196,20 +198,20 @@ Using the `runs` field allows you to build up complex graphs of tasks.
 Each task can have as many children as you need, so instead of just this: 
 
 ```javascript
-    runs: [
-        "my-child-task",
-    ],
+	runs: [
+		"my-child-task",
+	],
 ```
 
-A complex build script will look more like this:
+A complex build script will have many more tasks:
 
 ```javascript
-    runs: [
+	runs: [
 		"child1-task",
 		"child2-task",
 		"child3-task",
 		// and so on, as many as you want
-    ],
+	],
 ```
 
 ## Listing tasks
@@ -229,7 +231,7 @@ tasks
 
 ## Configuring an npm script
 
-You can run any task by name. Typically though you'll have some root or main task  call that encapsulates your entire build process. You might call it `build.js` or something similar.
+You can run any task by name. Typically though you'll have some root or main task that encapsulates your entire build process. You might call it `build.js` or something similar.
 
 For convenience you should add an npm script for it in your package.json file as follows:
 
@@ -292,14 +294,14 @@ Instead of just having a simple list of child tasks like this:
 Now we'll change it to this to set the configuration for the child task:
 
 ```javascript
-    runs: [
-        {
-            task: "my-child-task",
-            config: {
-                msg: "Some great message!",
-            },
-        },
-    ],
+	runs: [
+		{
+			task: "my-child-task",
+			config: {
+				msg: "Some great message!",
+			},
+		},
+	],
 ```
 
 Now run your first task again:
@@ -324,11 +326,11 @@ Task-Mule finished.
 Tasks can return results, for example the child task might look like this:
 
 ```javascript
-    invoke: async config => {
-        return {
+	invoke: async config => {
+		return {
 			msg: "Hello from the child task!",
 		};
-    },
+	},
 ```
 
 A parent task can retrieve the output from a child by running it explicitly using the `runTask` function:
@@ -348,25 +350,25 @@ module.exports = {
 };
 ```
 
-Now we are now running the child task directly using `runTask` and can get the results returned by that task. Note that the configuration is passed through to `runTask` this must be done to preserve the configuration of your build script.
+Now we are now running the child task directly using `runTask` and can get the results returned by that task. Note that the configuration is passed through to `runTask`, this must be done to preserve the configuration of your build script.
 
 ## Failing a task
 
 Tasks are failed simply by throwing an exception, for example:
 
 ```javascript
-    invoke: async config => {
+	invoke: async config => {
 		// ...
 		if (somethingBadHappens) {
 			throw new Error("Somethign went wrong.");
 		}
 		// ...
-    },
+	},
 ```
 
 ## Invoking a system command
 
-Task-Mule includes a special helper function `runCmd` to help you run system commands and marshal the results back into the build script. 
+Task-Mule includes a helper function `runCmd` to run system commands and marshal the results back into the build script. 
 
 In this example we'll run the command `hg id --num` which determines the current revision number of the [*Mercurial*](https://en.wikipedia.org/wiki/Mercurial) [repository](https://en.wikipedia.org/wiki/Repository_(version_control)) we happen to be. This kind of thing is useful in build scripts because you often want to *stamp* the number of the current code revision into the build somehow. 
 
@@ -374,17 +376,19 @@ In this example we'll run the command `hg id --num` which determines the current
 const { runCmd } = require("task-mule");
 
 //...
-		invoke: async config => {
-			var cmd = 'hg';
-			var args = ['id', '--num'];
-			const cmdResult = await runCmd(cmd, args);
-			var versionNo = parseInt(cmdResult.stdOut.trim());
-			return {
-				version: versionNo, // Return result to parent script.
-			};
-		},
+	invoke: async config => {
+		var cmd = 'hg';
+		var args = ['id', '--num'];
+		const cmdResult = await runCmd(cmd, args);
+		var versionNo = parseInt(cmdResult.stdOut.trim());
+		return {
+			version: versionNo, // Return result to parent script.
+		};
+	},
 // ...
 ```
+
+Yes I used to use Mercuial and am sad to see it fading from existance.
 
 ### Validation
 
@@ -404,7 +408,7 @@ module.exports = {
 };
 ```
 
-The validate helper has other useful functions for checking for the exists of files and directories.
+The validate helper has other useful functions to check for the existance of files and directories.
 
 ## *mule.js* layout
 
@@ -489,7 +493,7 @@ A Task-Mule automation script is structured in the file system as follows:
 			subdir/
 				nested-task.js 			-> Tasks can even be nested under sub-directories
 										   to help group and organise your tasks.
-		some-other-file.js 				-> Include any other JavaScript files and require
+		some-other-file.js				-> Include any other JavaScript files and require
 										   them into your script.
 
 ## Task layout
@@ -513,11 +517,11 @@ module.exports = {
         // ... list of dependencies ...
     ], 
 
-    // Can also use a function for depends on like this ...
+    // Can also use a function for "runs" like this ...
     /*
     runs: async config => {
         return [
-            /// ... list of dependencies ...                
+            // ... list of dependencies ...
         ];
     },
     */
@@ -694,7 +698,7 @@ Use `runCmd` to invoke a command, executable or batch file. An example is presen
 
 `runCmd` is simply for convenience. It is built on the Node.js `spawn` function and is setup to redirect standard output and standard error to Task-Mule output. This output is only displayed either when the *--verbose* command line option is used or when an error occurs.  
 
-The promise returned by `runCmd` is resolved when the process being run has finished. By default the promise is rejected if the process completes with an error code. You can set the `dontFailOnError` option to true if the promise should be resolved even if the process fails:
+The promise returned by `runCmd` is resolved when the process being run has finished. By default the promise is rejected if the process completes with an error code. 
 
 The options that are passed to `runCmd` are also passed to `spawn`, so `runCmd` accepts all the same options as `spawn`.
 
