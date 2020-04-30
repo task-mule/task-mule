@@ -19,8 +19,8 @@ const taskRunner: ITaskRunner = new TaskRunner(log);
 
 export { runCmd } from "./lib/run-cmd";
 
-export async function runTask(taskName: string, globalConfig: any, localConfig: any): Promise<void> {
-	await taskRunner.runTask(taskName, globalConfig, localConfig);
+export async function runTask(taskName: string, globalConfig: any, localConfig: any): Promise<any> {
+	return await taskRunner.runTask(taskName, globalConfig, localConfig);
 }
 
 export interface IMuleConfiguration extends ITaskRunnerCallbacks {

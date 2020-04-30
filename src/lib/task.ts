@@ -26,7 +26,7 @@ export interface ITaskModule {
     //
     // Invoke the task.
     //
-    invoke?(config: any): Promise<void>;
+    invoke?(config: any): Promise<any>;
 }
 
 //
@@ -57,6 +57,13 @@ export interface IBooleanMap {
 }
 
 //
+// Result lookup table for tasks.
+//
+export interface IResultMap {
+    [index: string]: any;
+}
+
+//
 // Represents a task.
 //
 export interface ITask {
@@ -73,7 +80,7 @@ export interface ITask {
     //
     // Invoke the task.
     //
-    invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void>;
+    invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, taskResults: IResultMap, indentLevel: number): Promise<any>;
 
     //
     // Generate a tree for the tasks dependencies.
@@ -236,7 +243,7 @@ export class Task implements ITask {
                 }
             }
 
-            tasksValidated[taskKey] = true; // Make that the task has been invoked.
+            tasksValidated[taskKey] = true; // Make that the task has been validated.
 
             if (!this.taskModule) {
                 return;
@@ -270,13 +277,13 @@ export class Task implements ITask {
     //
     // Invoke the task.
     //
-    async invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, indentLevel: number): Promise<void> {
+    async invoke(localConfig: any, globalConfig: any, tasksInvoked: IBooleanMap, taskResults: IResultMap, indentLevel: number): Promise<any> {
 
         var taskKey = this.genTaskKey(localConfig);
         if (tasksInvoked[taskKey]) {
             // Skip tasks that have already been satisfied.
             this.log.verbose(`${this.taskName} already completed, hash key = ${taskKey}.`);
-            return;
+            return taskResults[taskKey];
         }
        
         const taskConfig = Object.assign({}, globalConfig, localConfig);
@@ -294,18 +301,23 @@ export class Task implements ITask {
         try {
             const resolvedDependencies = await this.resolveDependencies(taskConfig);
             for (const dependency of resolvedDependencies) {
-                if (dependency.resolvedTask) {           
-                    await dependency.resolvedTask.invoke(dependency.config || {}, taskConfig, tasksInvoked, indentLevel+1);
+                if (dependency.resolvedTask) {    
+                    await dependency.resolvedTask.invoke(dependency.config || {}, taskConfig, tasksInvoked, taskResults, indentLevel+1);
                 }
             }
-
-            tasksInvoked[taskKey] = true; // Make that the task has been invoked.
 
             if (!this.taskModule) {
                 this.log.warn("Task not implemented: " + this.taskName);
             }
             else if (this.taskModule.invoke) {    
-                await this.taskModule.invoke(taskConfig);    
+                const result = await this.taskModule.invoke(taskConfig);    
+                tasksInvoked[taskKey] = true;   // Track the task as invoked.
+                taskResults[taskKey] = result;  // Cache it's output.
+                return result;
+            }
+            else {
+                tasksInvoked[taskKey] = true;   // Track the task as invoked.
+                return undefined;
             }
 
             stopWatch.stop();

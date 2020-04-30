@@ -1,4 +1,4 @@
-import { ITask, Task, ITaskModule, IBooleanMap } from "../../lib/task";
+import { ITask, Task, ITaskModule, IBooleanMap, IResultMap } from "../../lib/task";
 
 describe('Task', () => {
 
@@ -177,11 +177,11 @@ describe('Task', () => {
 
 		init({});
 
-		const configOverride = {};
+		const localConfig = {};
 		const tasksValidated: IBooleanMap = {};
-		await testObject.validate(configOverride, {}, tasksValidated);
+		await testObject.validate(localConfig, {}, tasksValidated);
 
-		expect(tasksValidated[testObject.genTaskKey(configOverride)]).toBe(true);
+		expect(tasksValidated[testObject.genTaskKey(localConfig)]).toBe(true);
 	});
 
 	it("validation invokes task-module callback", async () => {
@@ -191,10 +191,10 @@ describe('Task', () => {
 			validate: mockValidateFn,
 		});
 
-		const mockConfig: any = {};		
-		await testObject.validate({}, mockConfig, {});
+		const globalConfig: any = {};		
+		await testObject.validate({}, globalConfig, {});
 
-		expect(mockValidateFn).toHaveBeenCalledWith(mockConfig);
+		expect(mockValidateFn).toHaveBeenCalledWith(globalConfig);
 	});
 
 	it("can validate with dependency", async () => {
@@ -215,13 +215,13 @@ describe('Task', () => {
 			}
 		);
 
-		const configOverride = {};
-		const mockConfig: any = {};
+		const localConfig = {};
+		const globalConfig: any = {};
 		const tasksValidated = {};
 
-		await testObject.validate(configOverride, mockConfig, tasksValidated);
+		await testObject.validate(localConfig, globalConfig, tasksValidated);
 
-		expect(mockNestedValidateFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksValidated);
+		expect(mockNestedValidateFn).toHaveBeenCalledWith(localConfig, globalConfig, tasksValidated);
 	});
 
 	it("wont validate twice", async () => {
@@ -231,11 +231,11 @@ describe('Task', () => {
 			validate: mockValidateFn,
 		});
 
-		const mockConfig: any = {};
+		const globalConfig: any = {};
 		const tasksValidated = {};
 
-		await testObject.validate({}, mockConfig, tasksValidated);
-		await testObject.validate({}, mockConfig, tasksValidated);
+		await testObject.validate({}, globalConfig, tasksValidated);
+		await testObject.validate({}, globalConfig, tasksValidated);
 
 		expect(mockValidateFn).toHaveBeenCalledTimes(1);
 	});
@@ -244,12 +244,13 @@ describe('Task', () => {
 
 		init({});
 
-		const mockConfig: any = {};
-		const configOverride = {};
-		const taskInvoked: IBooleanMap = {};
-		await testObject.invoke(configOverride, mockConfig, taskInvoked, 0);
+		const globalConfig: any = {};
+		const localConfig = {};
+		const tasksInvoked: IBooleanMap = {};
+		const taskResults: IResultMap = {};
+		await testObject.invoke(localConfig, globalConfig, tasksInvoked, taskResults, 0);
 
-		expect(taskInvoked[testObject.genTaskKey(configOverride)]).toBe(true);
+		expect(tasksInvoked[testObject.genTaskKey(localConfig)]).toBe(true);
 	});
 
 	it("invoke invokes task-module callback", async () => {
@@ -259,10 +260,10 @@ describe('Task', () => {
 			invoke: mockInvokeFn,
 		});
 
-		const mockConfig: any = {};
-		await testObject.invoke({}, mockConfig, {}, 0);
+		const globalConfig: any = {};
+		await testObject.invoke({}, globalConfig, {}, {}, 0);
 
-		expect(mockInvokeFn).toHaveBeenCalledWith(mockConfig);
+		expect(mockInvokeFn).toHaveBeenCalledWith(globalConfig);
 	});
 
 	it("can invoke with dependency", async () => {
@@ -283,12 +284,13 @@ describe('Task', () => {
 			}
 		);
 
-		const configOverride = {};
-		const mockConfig: any = {};		
-		const tasksInvoked = {};
-		await testObject.invoke(configOverride, mockConfig, tasksInvoked, 0);
+		const localConfig = {};
+		const globalConfig: any = {};		
+		const tasksInvoked: IBooleanMap = {};
+		const taskResults: IResultMap = {};		
+		await testObject.invoke(localConfig, globalConfig, tasksInvoked, taskResults, 0);
 
-		expect(mockNestedInvokeFn).toHaveBeenCalledWith(configOverride, mockConfig, tasksInvoked, 1);
+		expect(mockNestedInvokeFn).toHaveBeenCalledWith(localConfig, globalConfig, tasksInvoked, taskResults, 1);
 	});
 
 	it("wont invoke twice", async () => {
@@ -298,10 +300,11 @@ describe('Task', () => {
 			invoke: mockNestedInvokeFn,
 		});
 
-		const mockConfig: any = {};
-		const tasksInvoked = {};
-		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
-		await testObject.invoke({}, mockConfig, tasksInvoked, 0);
+		const globalConfig: any = {};
+		const tasksInvoked: IBooleanMap = {};
+		const taskResults: IResultMap = {};
+		await testObject.invoke({}, globalConfig, tasksInvoked, taskResults, 0);
+		await testObject.invoke({}, globalConfig, tasksInvoked, taskResults, 0);
 
 		expect(mockNestedInvokeFn).toHaveBeenCalledTimes(1);
 	});
@@ -339,4 +342,20 @@ describe('Task', () => {
 		expect(tree).toEqual("#test\n##one-task\n##two-task\n");
 	});
 
+	it("can invoke and get result", async () => {
+		const someResult = {};
+		init({
+			invoke: async config => {
+				return someResult;
+			}
+		});
+
+		const globalConfig: any = {};
+		const localConfig = {};
+		const tasksInvoked: IBooleanMap = {};
+		const taskResults: IResultMap = {};
+		const result = await testObject.invoke(localConfig, globalConfig, tasksInvoked, taskResults, 0);
+		expect(result).toBe(someResult);
+		expect(taskResults[testObject.genTaskKey(localConfig)]).toBe(someResult);
+	});
 });

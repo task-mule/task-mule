@@ -57,7 +57,7 @@ describe('TaskRunner', () => {
         await testObject.runTask("test-task", mockConfig, configOverride);
 
         expect(mockTask.validate).toHaveBeenCalledWith(configOverride, mockConfig, {});
-        expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {}, 0);
+        expect(mockTask.invoke).toHaveBeenCalledWith(configOverride, mockConfig, {}, {}, 0);
     });
 
     it("exception is propagated from failed task invocation", async () => {
@@ -204,6 +204,25 @@ describe('TaskRunner', () => {
         const testObject = new TaskRunner(mockLog);
         
         await expect(() => testObject.runTask("test-task", {}, {})).rejects.toThrow();
+    });
+
+    it("can run task and get result", async () => {
+        const mockLog: any = {};
+        const testObject = new TaskRunner(mockLog);
+        
+        const taskName = "test-task";
+        const someResult = {};
+        const mockTask: any = {
+            getName: () => taskName,
+            validate: () => {},
+            invoke: async () => someResult,
+        };
+        testObject.addTask(mockTask);
+
+        const configOverride = {};
+        const mockConfig = {};
+        const result = await testObject.runTask("test-task", mockConfig, configOverride);
+        expect(result).toBe(someResult);
     });
 
     it("can list tasks", async () => {

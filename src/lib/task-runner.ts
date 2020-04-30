@@ -165,7 +165,7 @@ export class TaskRunner implements ITaskRunner {
 	//
 	// Run a named task with a particular config.
 	//
-	async runTask(taskName: string, globalConfig: any, localConfig: any): Promise<void> {
+	async runTask(taskName: string, globalConfig: any, localConfig: any): Promise<any> {
 
         const task = this.taskMap[taskName];
         if (!task) {
@@ -197,7 +197,8 @@ export class TaskRunner implements ITaskRunner {
             await task.validate(localConfig, globalConfig, tasksValidated);
     
             const taskInvoked = {}; // Tasks that have been invoked.
-            await task.invoke(localConfig, globalConfig, taskInvoked, 0);
+            const taskResults = {}; // Collected cached task results.
+            const result = await task.invoke(localConfig, globalConfig, taskInvoked, taskResults, 0);
 
             if (uncaughtExceptionCount > 0) {
                 throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);
@@ -205,6 +206,7 @@ export class TaskRunner implements ITaskRunner {
 
             process.removeListener('uncaughtException', uncaughtExceptionHandler);
             await this.notifyTaskSuccess(taskName);
+            return result;
         }
         catch (err) {
             process.removeListener('uncaughtException', uncaughtExceptionHandler);
