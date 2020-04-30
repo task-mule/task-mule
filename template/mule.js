@@ -10,6 +10,7 @@ module.exports = {
 	//
 	options: [
 		['--some-option', 'description of the option'],
+		['--another-option', 'description of the option'],
 	],
 
 	//
@@ -17,34 +18,35 @@ module.exports = {
 	// Fill this out to provide custom help when 'task-mule --help' is executed on the command line.
 	//
 	examples: [
-		['What it is', 'example command line'],
+		['Example 1', 'An example command line'],
+		['Example 2', 'An example command line'],
 	],
 
-	init: async (config) => {
+	init: async config => {
 		// ... custom initialisation code here ... 
 	},
 
-	unhandledException: (err) => {
+	unhandledException: err => {
 		// ... callback for unhandled exceptions thrown by your tasks ...
 	},
 
-	taskStarted: async (taskInfo) => {
+	taskStarted: async taskName => {
 		// ... callback for when a task has started (not called for dependencies) ...
 	},
 
-	taskSuccess: async (taskInfo) => {
+	taskSuccess: async taskName => {
 		// ... callback for when a task has succeeed (not called for dependencies) ...
 	},
 
-	taskFailure: async (taskInfo) => {
+	taskFailure: async (taskName, err) => {
 		// ... callback for when a task has failed (not called for dependencies) ...
 	},
 
-	taskDone: async (taskInfo) => {
+	taskDone: async taskName => {
 		// ... callback for when a task has completed, either failed or succeeed (not called for dependencies) ...
 	},
 
-	done: async (config) => {
+	done: async config => {
 		// ... callback for when all tasks have been completed, either failed or succeeded ...
-	}
+	},
 };
