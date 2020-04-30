@@ -294,14 +294,14 @@ Instead of just having a simple list of child tasks like this:
 Now we'll change it to this to set the configuration for the child task:
 
 ```javascript
-	runs: [
-		{
-			task: "my-child-task",
-			config: {
-				msg: "Some great message!",
-			},
+runs: [
+	{
+		task: "my-child-task",
+		config: {
+			msg: "Some great message!",
 		},
-	],
+	},
+],
 ```
 
 Now run your first task again:
