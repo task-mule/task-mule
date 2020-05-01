@@ -8,7 +8,7 @@ Sure, they are great for standard and fairly simple web pages. That's where you 
 
 Turn to Task-Mule when you have a more complicated build process. Like for a game, VR application or cross-platform desktop application.
 
-Task-Mule is the task runner for build processes with complex dependency chains. Got a 100 tasks that depend on each in wierd and wonderful ways? 
+Task-Mule is the task runner for build processes with complex dependency chains. Got a load of tasks that depend on each in wierd and wonderful ways? 
 
 Task-Mule allows you to build ["make files"](https://en.wikipedia.org/wiki/Makefile) in JavaScript. 
 
@@ -692,7 +692,7 @@ To fail a task throw an exception or return a *rejected* promise.
 
 Validation for a sequence of tasks is run before any of the tasks are *invoked*. This allows the entire automation script to quickly check that it's configuration and inputs are correct before it does any work. The reason for this is to have quick feedback. No one likes to have to wait for a significant amount of time (say while a build is running) before the script fails due to a configuration or input error. So validation runs first for all tasks that will be invoked. This ensure the script will fail fast when there is a user error.
 
-### More on running commands
+## More on running commands
 
 Use `runCmd` to invoke a command, executable or batch file. An example is presented earlier in this documentation. `runCmd` returns a promise, so it works well with Task-Mule tasks.
 
