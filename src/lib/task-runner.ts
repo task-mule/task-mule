@@ -1,5 +1,5 @@
 import { ILog } from "./log";
-import { ITask } from "./task";
+import { ITask, IBooleanMap, IResultMap } from "./task";
 import { globalAgent } from "http";
 
 const assert = require('chai').assert;
@@ -94,6 +94,21 @@ export class TaskRunner implements ITaskRunner {
     // User-defined callbacks for particular events.
     //
     private callbacks?: ITaskRunnerCallbacks;
+
+    //
+    // Tasks that have been validated.
+    //
+    private tasksValidated: IBooleanMap = {}; 
+
+    //
+    // Tasks that have been invoked.
+    //
+    private taskInvoked: IBooleanMap = {}; 
+
+    //
+    // Collected cached task results.
+    //
+    private taskResults: IResultMap = {}; 
 
     constructor(log: ILog) {
         this.log = log;
@@ -193,12 +208,9 @@ export class TaskRunner implements ITaskRunner {
         try {
             await this.notifyTaskStarted(taskName);
 
-            const tasksValidated = {}; // Tasks that have been validated.
-            await task.validate(localConfig, globalConfig, tasksValidated);
+            await task.validate(localConfig, globalConfig, this.tasksValidated);
     
-            const taskInvoked = {}; // Tasks that have been invoked.
-            const taskResults = {}; // Collected cached task results.
-            const result = await task.invoke(localConfig, globalConfig, taskInvoked, taskResults, 0);
+            const result = await task.invoke(localConfig, globalConfig, this.taskInvoked, this.taskResults, 0);
 
             if (uncaughtExceptionCount > 0) {
                 throw new Error(' Unhandled exceptions (' + uncaughtExceptionCount + ') occurred while running task ' + taskName);
