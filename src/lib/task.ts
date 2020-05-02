@@ -291,13 +291,11 @@ export class Task implements ITask {
         this.log.verbose(`Running task ${this.taskName}, hash key = ${taskKey}.`);
         this.log.verbose(`Config: ${JSON.stringify(taskConfig, null, 4)}`);
 
-        const args = Object.keys(localConfig).map(key => `${key} = ${JSON.stringify(localConfig[key])}`).join(', ');
-
         let indentStr = this.makeIndent(indentLevel);
         if (indentStr.length > 0) {
             indentStr += " ";
         }
-        this.log.task(`${indentStr}${this.taskName} {${args}}`);
+        this.log.task(`${indentStr}${this.taskName} ${JSON.stringify(localConfig)}`);
 
         const stopWatch = new Stopwatch();
         stopWatch.start();
