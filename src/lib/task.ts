@@ -310,27 +310,26 @@ export class Task implements ITask {
                 }
             }
 
+            let result = undefined;
+
             if (!this.taskModule) {
                 this.log.warn("Task not implemented: " + this.taskName);
             }
             else if (this.taskModule.invoke) {    
-                const result = await this.taskModule.invoke(taskConfig);    
+                result = await this.taskModule.invoke(taskConfig);    
                 tasksInvoked[taskKey] = true;   // Track the task as invoked.
                 taskResults[taskKey] = result;  // Cache it's output.
-                return result;
             }
             else {
                 tasksInvoked[taskKey] = true;   // Track the task as invoked.
-                return undefined;
             }
+
+            stopWatch.stop();
+            this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
         catch (err) {
             this.log.error(this.makeIndent(indentLevel+1) + " failed");
             throw err;
-        }
-        finally {
-            stopWatch.stop();
-            this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
         }
     }
 
