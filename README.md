@@ -32,6 +32,7 @@ Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you 
 - Define tasks in JavaScript and use whatever npm modules you like.
 - Create hierachies of tasks.
 - Run a task and all its children.
+- Testing individual tasks and sub-trees of tasks is easy.
 - Color logging.
 - Times the execution of tasks.
 - Built-in support for running command line tools and retreiving their output.
