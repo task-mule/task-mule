@@ -20,7 +20,8 @@
     "t": "npm run test",
     "test": "jest",
     "tw": "npm run test:watch",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "postinstall": "node postinstall.js || echo \"ignore\""
   },
   "repository": {
     "type": "git",

@@ -16,6 +16,8 @@ Need to get started, jump straight to [the quick start](#getting-started---ultra
 
 Task-Mule is the build tool that powers [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
 
+**Scroll** to the end to see how you can [support the developer](#support-the-developer).
+
 # Why Task-Mule?
 
 So why Task-Mule? Task-Mule is a bit different. It is a task runner of course, but is not just for build scripts. It was designed for large automation jobs with complex dependencies between tasks.
@@ -703,3 +705,10 @@ The options that are passed to `runCmd` are also passed to `spawn`, so `runCmd` 
 
 You don't have to use `runCmd`. Feel free to [Node.js process functions](https://nodejs.org/api/child_process.html) directly or whatever other functions will do the job for you. Just remember that you will need to *promisify* any asynchronous operations.
 
+# Support the developer
+
+<a class="support" target="_blank" href="http://bit.ly/2o0aDsP"><img src="images/support1.png"></a>
+
+<a class="support" target="_blank" href="https://www.data-forge-notebook.com/"><img src="images/support2.png"></a>
+
+<a class="support" target="_blank" href="http://bit.ly/2t2cJu2"><img src="images/support3.png"></a>
