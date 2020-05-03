@@ -324,6 +324,8 @@ export class Task implements ITask {
 
             stopWatch.stop();
             this.log.task(this.makeIndent(indentLevel+1) + " completed : " + (stopWatch.read() * 0.001).toFixed(2) + " seconds");
+
+            return result;
         }
         catch (err) {
             this.log.error(this.makeIndent(indentLevel+1) + " failed");
