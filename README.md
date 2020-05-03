@@ -22,15 +22,13 @@ So why Task-Mule? Task-Mule is a bit different. It is a task runner of course, b
 
 Task-Mule was built for piece-meal testing of individual tasks. Each task can be tested from the command line (or test runner) with ease, even if those tasks will only ever be a dependency for other tasks in production.
 
-FIO: Task-Mule tasks can also easily be tested via testing tools like Mocha. More on that later.
-
 Task-Mule relies on [npm](https://www.npmjs.com/). Install the dependencies you need via npm and then wire them into your script through tasks written in JavaScript.
 
 # Features
 
 - Create a build script or automation script in JavaScript.
 - Define tasks in JavaScript and use whatever npm modules you like.
-- Create hierachies of tasks.
+- Create hierarchies of tasks.
 - Run a task and all its children.
 - Testing individual tasks and sub-trees of tasks is easy.
 - Color logging.
