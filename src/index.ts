@@ -145,9 +145,10 @@ function displayHelp(buildConfig: IMuleConfiguration): void {
 };
 
 async function main() {
-	const config: any = {
+
+    const config: any = Object.assign({}, process.env, argv, {
 		cwd: path.normalize(process.cwd()).replace(/\\/g, "/"),
-	};
+	});
 
 	config.buildFilePath = path.join(config.cwd, "mule.js");
 	config.tasksDir = path.join(config.cwd, 'tasks');

@@ -707,7 +707,7 @@ You don't have to use `runCmd`. Feel free to [Node.js process functions](https:/
 
 # Support the developer
 
-You can [sponsor the developer of Task-Mule on GitHub](https://github.com/sponsors/ashleydavis).
+Star this repo or [sponsor the developer on GitHub](https://github.com/sponsors/ashleydavis).
 
 Here's some other ways you can support the developer...
 
