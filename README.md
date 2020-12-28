@@ -16,7 +16,7 @@ Need to get started, jump straight to [the quick start](#getting-started---ultra
 
 Task-Mule is the build tool that powers [Data-Forge Notebook](https://www.data-forge-notebook.com/): a cross-platform notebook-style desktop application built on [Electron](https://www.electronjs.org/).
 
-**Scroll** to the end to see how you can [support the developer](#support-the-developer).
+<a target="_blank" href="http://www.codecapers.com.au/#support-my-work">Click here to **support the developer.**</a>
 
 # Why Task-Mule?
 
@@ -705,14 +705,6 @@ The options that are passed to `runCmd` are also passed to `spawn`, so `runCmd` 
 
 You don't have to use `runCmd`. Feel free to [Node.js process functions](https://nodejs.org/api/child_process.html) directly or whatever other functions will do the job for you. Just remember that you will need to *promisify* any asynchronous operations.
 
-# Support the developer
+## Support the developer 
 
-Star this repo or [sponsor the developer on GitHub](https://github.com/sponsors/ashleydavis).
-
-Here's some other ways you can support the developer...
-
-<a class="support" target="_blank" href="http://bit.ly/2o0aDsP"><img src="images/support1.png"></a>
-
-<a class="support" target="_blank" href="https://www.data-forge-notebook.com/"><img src="images/support2.png"></a>
-
-<a class="support" target="_blank" href="http://bit.ly/2t2cJu2"><img src="images/support3.png"></a>
+<a target="_blank" href="http://www.codecapers.com.au/#support-my-work">Click here to **support the developer.**</a>
